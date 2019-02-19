@@ -12,7 +12,8 @@ __email__ = 'konnos.tatsis@gmail.com'
 class Quadrilateral(abc.ABC):
 
     """
-    Description.
+    Class for interfacing the methods of quadrilateral elements for 
+    plane-stress and plane strain problems.
 
     Methods
     -------
@@ -86,7 +87,7 @@ class Quadrilateral(abc.ABC):
         mass = np.zeros((self.degrees, self.degrees))
 
         for density, t, (r1, r2, w1, w2) in zip(mdensity, thickness, irule):
-            N = self.getShapeFunction(r1, r2)
+            N = self.getShapeFunctions(r1, r2)
             jacobian = self.getJacobian(ncoords, r1, r2)
             mass += w1*w2*N.T.dot(N)*density*np.linalg.det(jacobian)*t
 
@@ -126,7 +127,7 @@ class Quadrilateral(abc.ABC):
 
         for C, r, t, (r1, r2, w1, w2) in zip(cmatrix, mdensity, thickness, irule):
             B, jacobian = self.getDeformationMatrix(ncoords, r1, r2)
-            N = self.getShapeFunction(r1, r2)
+            N = self.getShapeFunctions(r1, r2)
 
             stiffness += w1*w2*B.T.dot(C).dot(B)*np.linalg.det(jacobian)*t
             mass += w1*w2*N.T.dot(N)*r*np.linalg.det(jacobian)*t
@@ -198,8 +199,8 @@ class Quadrilateral(abc.ABC):
 class Quad4(Quadrilateral):
 
     """
-    Four-node quadrilateral element for placne-stress and plane-strain 
-    problems.
+    Class implementing the four-node quadrilateral element for plane-stress 
+    and plane-strain problems.
 
     Attributes
     ----------
@@ -219,7 +220,8 @@ class Quad4(Quadrilateral):
 
     Examples
     --------
-    >>> mdensity = 500
+    >>> mdensity = 500*np.ones(4)
+    >>> thickness = 0.2*np.ones(4)
     >>> ncoords = np.array([[2, 1], [0, 1], [0, 0], [2, 0]])
     >>> irule = np.array([
             [-0.57735027, -0.57735027,  1.,  1.],
@@ -230,15 +232,16 @@ class Quad4(Quadrilateral):
             [108,  36,  0],
             [ 36, 108,  0],
             [  0,   0, 36]])
+    >>> cmatrix = np.repeat(np.array([cmatrix]), 4, axis=0)
     >>> quad4 = quadrilaterals.Quad4()
-    >>> stiffness = quad4.getGlobalStiffness(ncoords, irule, cmatrix)
-    >>> mass = quad.getGlobalMass(ncoords, irule, mdensity)
+    >>> stiffness = quad4.getStiffness(ncoords, cmatrix, thickness, irule)
+    >>> mass = quad4.getMass(ncoords, mdensity, thickness, irule)
     """
 
     degrees = 8
 
     @staticmethod
-    def getShapeFunction(r1, r2):
+    def getShapeFunctions(r1, r2):
 
         """
         Get the shape functions matrix, that relates nodal displacements to 
@@ -272,7 +275,7 @@ class Quad4(Quadrilateral):
     def getShapeFunctionsDerivatives(r1, r2):
 
         """
-        Ge the shape functions derivatives with respect to the natural
+        Get the shape functions derivatives with respect to the natural
         coordinates r1 and r2.
 
         Parameters
@@ -298,8 +301,8 @@ class Quad4(Quadrilateral):
 class Quad8(Quadrilateral):
 
     """
-    Eight-node quadrilateral element for plane-stress and plain strain 
-    problems.
+    Class implementing the eight-node quadrilateral element for plane-stress 
+    and plain strain problems.
 
     Methods
     -------
@@ -311,7 +314,29 @@ class Quad8(Quadrilateral):
 
     Examples
     --------
-    >>>
+    >>> mdensity = 500*np.ones(9)
+    >>> thickness = 0.2*np.ones(9)
+    >>> ncoords = np.array([
+            [2, 2], [0, 2], [0, 0], [2, 0],
+            [1, 2], [0, 1], [1, 0], [2, 1]])
+    >>> irule = array([
+            [ 0.        ,  0.        ,  0.88888889,  0.88888889],
+            [-0.77459667, -0.77459667,  0.55555556,  0.55555556],
+            [ 0.        , -0.77459667,  0.88888889,  0.55555556],
+            [ 0.77459667, -0.77459667,  0.55555556,  0.55555556],
+            [ 0.77459667,  0.        ,  0.55555556,  0.88888889],
+            [ 0.77459667,  0.77459667,  0.55555556,  0.55555556],
+            [ 0.        ,  0.77459667,  0.88888889,  0.55555556],
+            [-0.77459667,  0.77459667,  0.55555556,  0.55555556],
+            [-0.77459667,  0.        ,  0.55555556,  0.88888889]])
+    >>> cmatrix = np.array([
+            [108,  36,  0],
+            [ 36, 108,  0],
+            [  0,   0, 36]])
+    >>> cmatrix = np.repeat(np.array([cmatrix]), 9, axis=0)
+    >>> quad8 = quadrilaterals.Quad8()
+    >>> stiffness = quad8.getStiffness(ncoords, cmatrix, thickness, irule)
+    >>> mass = quad8.getMass(ncoords, mdensity, thickness, irule)
     """
 
     degrees = 16
@@ -391,8 +416,8 @@ class Quad8(Quadrilateral):
 class Quad9(Quadrilateral):
 
     """
-    Nine-node quadrilateral element for plane-stress and plane strain
-    problems.
+    Class implementing the nine-node quadrilateral element for plane-stress 
+    and plane strain problems.
 
     Methods
     -------
@@ -404,7 +429,29 @@ class Quad9(Quadrilateral):
 
     Examples
     --------
-    >>> 
+    >>> mdensity = 500*np.ones(9)
+    >>> thickness = 0.2*np.ones(9)
+    >>> ncoords = np.array([
+            [2, 2], [0, 2], [0, 0], [2, 0],
+            [1, 2], [0, 1], [1, 0], [2, 1], [1, 1]])
+    >>> irule = array([
+            [ 0.        ,  0.        ,  0.88888889,  0.88888889],
+            [-0.77459667, -0.77459667,  0.55555556,  0.55555556],
+            [ 0.        , -0.77459667,  0.88888889,  0.55555556],
+            [ 0.77459667, -0.77459667,  0.55555556,  0.55555556],
+            [ 0.77459667,  0.        ,  0.55555556,  0.88888889],
+            [ 0.77459667,  0.77459667,  0.55555556,  0.55555556],
+            [ 0.        ,  0.77459667,  0.88888889,  0.55555556],
+            [-0.77459667,  0.77459667,  0.55555556,  0.55555556],
+            [-0.77459667,  0.        ,  0.55555556,  0.88888889]])
+    >>> cmatrix = np.array([
+            [108,  36,  0],
+            [ 36, 108,  0],
+            [  0,   0, 36]])
+    >>> cmatrix = np.repeat(np.array([cmatrix]), 9, axis=0)
+    >>> quad9 = quadrilaterals.Quad9()
+    >>> stiffness = quad9.getStiffness(ncoords, cmatrix, thickness, irule)
+    >>> mass = quad9.getMass(ncoords, mdensity, thickness, irule)
     """
 
     degrees = 18
@@ -429,26 +476,15 @@ class Quad9(Quadrilateral):
             number of degrees of freedom.
         """
 
-        # shapeFunctions = np.array([
-        #          (1+r1)*(1+r2)*r1*r2/4, 
-        #         -(1-r1)*(1+r2)*r1*r2/4,
-        #          (1-r1)*(1-r2)*r1*r2/4, 
-        #         -(1+r1)*(1-r2)*r1*r2/4,
-        #         -(1+r1**2)*(1+r2)*r2/2, 
-        #          (1-r1)*(1+r2**2)*r1/2,
-        #         -(1-r1**2)*(1-r2)*r2/2, 
-        #          (1+r1)*(1-r2**2)*r1/2,
-        #          (1-r1**2)*(1-r2**2)])
-
         shapeFunctions = np.array([
                  (1+r1)*(1+r2)*r1*r2/4, 
                 -(1-r1)*(1+r2)*r1*r2/4,
                  (1-r1)*(1-r2)*r1*r2/4, 
                 -(1+r1)*(1-r2)*r1*r2/4,
                  (1-r1**2)*(1+r2)*r2/2,
-                -(1-r1)*r1*(1-r2**2)/2, # (1+r1)*(1-r2**2)*r1/2,
-                -(1-r1**2)*(1-r2)*r2/2, # -(1-r1)*r1*(1-r2)*r2/2, # -(1-r1**2)*(1-r2)*r2/2, 
-                 (1+r1)*r1*(1-r2**2)/2, #  (1-r1)*(1+r2**2)*r1/2,
+                -(1-r1)*r1*(1-r2**2)/2,
+                -(1-r1**2)*(1-r2)*r2/2,
+                 (1+r1)*r1*(1-r2**2)/2,
                  (1-r1**2)*(1-r2**2)])
         out = np.zeros((2, 18))
         cols = np.arange(0, 18, 2)
