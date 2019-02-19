@@ -1,0 +1,490 @@
+"""
+Provides the implementation of isoparametric quadrilateral plane-stress and 
+plane-strain elements.
+"""
+
+import abc
+import numpy as np
+
+__author__ = 'Konstantinos Tatsis'
+__email__ = 'konnos.tatsis@gmail.com'
+
+class Quadrilateral(abc.ABC):
+
+    """
+    Description.
+
+    Methods
+    -------
+    getGlobalStiffness(ncoords, irule, cmatrix)
+        Get the global stiffness matrix.
+    getGlobalMass(ncoords, irule, mdensity)
+        Get the global mass matrix.
+    getJacobian(ncoords, r1, r2)
+        Get the Jacobian.
+    getDeformationMatrix(ncoords, r1, r2)
+        Get the deformation matrix.
+    """
+
+    def getGlobalStiffness(self, ncoords, cmatrix, thickness, irule):
+
+        """
+        Get the global stiffness matrix.
+
+        Parameters
+        ----------
+        ncoords: ndarray
+            The nodal coordinates (n x 2), where n is he number of nodes.
+        cmatrix: ndarray
+            The material constitutive matrix at the integration points.
+        thickness: ndarray
+            The element thickness at the integration points.
+        irule: ndarray
+            The integration rule (p x 4), where p is the number of integration
+            points. The first two columns contain the sample points while the
+            last one contains the corresponding weights.
+
+        (Take into account the different constitutive matrix and thickness for each integration point.)
+
+        Returns
+        -------
+        kglobal: ndarray
+            The global stiffness matrix.
+        """
+
+        kglobal = np.zeros((self.degrees, self.degrees))
+
+        if cmatrix.ndim != 3:
+            cmatrix = cmatrix[np.newaxis]
+            nm = np.zeros(irule.shape[0], dtype=int)
+
+        for i, (r1, r2, w1, w2) in zip(nm, irule):
+            jacobian = self.getJacobian(ncoords, r1, r2)
+            B = self.getDeformationMatrix(ncoords, r1, r2)
+            kglobal += w1*w2*B.T.dot(cmatrix[i]).dot(B)*np.linalg.det(jacobian)
+
+        return kglobal
+
+
+    def evaluateStiffness(self, ncoords, cmatrix, thickness, point):
+
+        pass
+
+
+    def integrate(self, ncoords, irule, function, **kwargs):
+
+        for r1, r2, w1, w2, arg in zip(irule, args):
+
+            quantity += w1*w2*function(args)
+
+
+    def getGlobalMass(self, ncoords, mdensity, thickness, irule):
+
+        """
+        Get the global mass matrix.
+
+        Parameters
+        ----------
+        ncoords: ndarray
+            The nodal coordinates (n x 2), where n is the number of nodes.
+        mdensity: ndarray
+            The material density at the integration points.
+        thickness: ndarray
+            The element thickness at the integration points.
+        irule: ndarray
+            The integration rule (p x 4), where p is the number of integration
+            points. The first two columns contain the sample points while the
+            last one contains the corresponding weights.
+
+        (Take into account different density and thickness on each integration point)
+
+        Returns
+        -------
+        mglobal: ndarray
+            The global mass matrix.
+        """
+
+        mglobal = np.zeros((self.degrees, self.degrees))
+
+        if cmatrix.ndim != 3:
+            cmatrix = cmatrix[np.newaxis]
+            nm = np.zeros(irule.shape[0], dtype=int)
+
+        for r1, r2, w1, w2 in irule:
+            N = self.getShapeFunction(r1, r2)
+            jacobian = self.getJacobian(ncoords, r1, r2)
+            mglobal += w1*w2*N.T.dot(N)*density*np.linalg.det(jacobian)
+
+        return kglobal
+
+
+    def getDeformationMatrix(self, ncoords, r1, r2):
+
+        """
+        Get the deformation matrix, relating displacements to strains.
+
+        Parameters
+        ----------
+        ncoords: ndarray
+            The nodal coordinates (n x 2), where n is the number of nodes.
+        r1, r2: float
+            The quadrilateral natural coordinates, ranging form -1 to 1.
+
+        Returns
+        -------
+        out: ndarray
+            The deformation matrix.
+        """
+
+        jacobian = self.getJacobian(ncoords, r1, r2)
+        derivatives = self.getShapeFunctionsDerivatives(r1, r2)
+        data = np.linalg.inv(jacobian).dot(derivatives).T
+        deformationMatrix = np.zeros((3, self.degrees))
+
+        cols = np.arange(0, self.degrees, 2)
+        rows = [0, 1, 2, 2]
+        shifts = [0, 1, 0, 1]
+        entries = [0, 1, 1, 0]
+
+        for row, shift, entry in zip(rows, shifts, entries):
+            deformationMatrix[row, cols+shift] = data[:, entry]
+
+        return deformationMatrix
+
+
+
+    def getJacobian(self, ncoords, r1, r2):
+
+        """
+        Get the Jacobian matrix.
+
+        Parameters
+        ----------
+        ncoords
+            The nodal coordinates (n x 2), where n is the number of nodes.
+        r1, r2: float
+            The quadrilateral natural coordinates, ragning from -1 to 1.
+
+        Returns
+        -------
+        jacobian: ndarray
+            The jacobian matrix.
+        """
+
+        jacobian = self.getShapeFunctionsDerivatives(r1, r2).dot(ncoords)
+
+        return jacobian
+
+
+
+class Quad4(Quadrilateral):
+
+    """
+    Four-node quadrilateral element for placne-stress and plane-strain 
+    problems.
+
+    Attributes
+    ----------
+    degrees: int
+        The number of degrees of freedom.
+
+    Methods
+    -------
+    getShapeFunctions(r1, r2)
+        Get the shape function matrix in natural coordinates.
+    getShapeFunctionsDerivatives(r1, r2)
+        Get the shape functions derivatives with respect to the natural
+        coordinates.
+
+    Notes
+    -----
+
+    Examples
+    --------
+    >>> mdensity = 500
+    >>> ncoords = np.array([[2, 1], [0, 1], [0, 0], [2, 0]])
+    >>> irule = np.array([
+            [-0.57735027, -0.57735027,  1.,  1.],
+            [ 0.57735027, -0.57735027,  1.,  1.],
+            [ 0.57735027,  0.57735027,  1.,  1.],
+            [-0.57735027,  0.57735027,  1.,  1.]])
+    >>> cmatrix = np.array([
+            [108,  36,  0],
+            [ 36, 108,  0],
+            [  0,   0, 36]])
+    >>> quad4 = quadrilaterals.Quad4()
+    >>> stiffness = quad4.getGlobalStiffness(ncoords, irule, cmatrix)
+    >>> mass = quad.getGlobalMass(ncoords, irule, mdensity)
+    """
+
+    degrees = 8
+
+    @staticmethod
+    def getShapeFunction(r1, r2):
+
+        """
+        Get the shape functions matrix, that relates nodal displacements to 
+        element field displacements, in natural coordinates.
+
+        Parameters
+        ----------
+        r1, r2
+            The quadrilateral natural coordinates, ranging from -1 to 1, at
+            which the shape functions are evaluated.
+
+        Returns
+        -------
+        out: ndarray
+            The shape functions matrix of size (2 x 8), where 8 is the number
+            of degrees of freedom.
+        """
+
+        shapeFunctions = 0.25*np.array([
+                (1+r1)*(1+r2), (1-r1)*(1+r2), (1-r1)*(1-r2), (1+r1)*(1-r2)])
+        out = np.zeros((2, 8))
+        cols = np.arange(0, 8, 2)
+
+        for row in range(2):
+            out[row, cols+row] = shapeFunctions
+
+        return out
+
+
+    @staticmethod
+    def getShapeFunctionsDerivatives(r1, r2):
+
+        """
+        Ge the shape functions derivatives with respect to the natural
+        coordinates r1 and r2.
+
+        Parameters
+        ----------
+        r1, r2
+            The quadrilateral natural coordinates, ranging from -1 to 1, at
+            which the shape functions derivatives are evaluated.
+
+        Returns
+        -------
+        out: ndarray
+            The shape functions derivatives of size (2 x 4), where 4 is the
+            number of nodes.
+        """
+
+        out = np.zeros((2, 4))
+        out[0, :] = np.array([(1+r2), -(1+r2), -(1-r2), (1-r2)])/4
+        out[1, :] = np.array([(1+r1), (1-r1), -(1-r1), -(1+r1)])/4
+
+        return out
+
+
+class Quad8(Quadrilateral):
+
+    """
+    Eight-node quadrilateral element for plane-stress and plain strain 
+    problems.
+
+    Methods
+    -------
+    getShapeFunctions(r1, r2)
+        Get the shape functions matrix.
+    getShapeFunctionsDerivatives(r1, r2)
+        Get the shape functions derivatives with respect to the natural
+        coordinates.
+
+    Examples
+    --------
+    >>>
+    """
+
+    degrees = 16
+
+    @staticmethod
+    def getShapeFunctions(r1, r2):
+
+        """
+        Get the shape fucntions matrix, that relates nodal displacements to
+        element field displacements.
+
+        Parameters
+        ----------
+        r1, r2: float
+            The quadrilateral natural coordinates, ranging from -1 to 1, at 
+            which the shape functions are evaluated.
+
+        Returns
+        -------
+        out: ndarray
+            The shape functions matrix of size (2 x 16), where 16 is the
+            number of degrees of freedom.
+        """
+
+        shapeFunctions = 0.5*np.array([
+                (1+r1)*(1+r2)*(r1+r2-1)/2, 
+                (1-r1)*(1+r2)*(-r1+r2-1)/2,
+                (1-r1)*(1-r2)*(-r1-r2-1)/2, 
+                (1+r1)*(1-r2)*(r1-r2-1)/2,
+                (1-r1**2)*(1+r2), 
+                (1-r1)*(1-r2**2),
+                (1-r1**2)*(1-r2), 
+                (1+r1)*(1-r2**2)])
+        out = np.zeros((2, 16))
+        cols = np.arange(0, 16, 2)
+
+        for row in range(2):
+            out[row, cols+row] = shapeFunctions
+
+        return out
+
+
+    @staticmethod
+    def getShapeFunctionsDerivatives(r1, r2):
+
+        """
+        Get the shape functions derivatives with respect to the natural 
+        coordiantes r1 and r2.
+
+        Parameters
+        ----------
+        r1, r2
+            The quadrilateral natural coordinates, ranging from -1 to 1, at
+            which the shape functions' derivatives are evaluted.
+
+        Returns
+        -------
+        out: ndarray
+            The shape functions derivatives of size (2 x 8), where 8 is the 
+            number of nodes.
+        """
+
+        out = np.zeros((2, 8))
+        out[0, :2] = np.array([(1+r1)*(-2*r1+r2), -(1+r2)*(-2*r1+r2)])/4
+        out[0, 2:4] = np.array([(1-r2)*(2*r1+r2), (1-r2)*(2*r1-r2)])/4
+        out[0, 4:6] = np.array([-2*r1*(1+r2), -(1-r2**2)])/2
+        out[0, 6:] = np.array([-2*r1*(1-r2), (1-r2**2)])/2
+
+        out[1, :2] = np.array([(1+r1)*(2*r2+r1), (1-r1)*(2*r2-r1)])/4
+        out[1, 2:4] = np.array([(1-r1)*(2*r2+r1), (1+r1)*(2*r2-r1)])/4
+        out[1, 4:6] = np.array([(1-r1**2), -2*r2*(1-r1)])/2
+        out[1, 6:] = np.array([-(1-r1**2), -2*r2*(1+r1)])/2
+
+        return out
+
+
+class Quad9(Quadrilateral):
+
+    """
+    Nine-node quadrilateral element for plane-stress and plane strain
+    problems.
+
+    Methods
+    -------
+    getShapeFunctions(r1, r2)
+        Get the shape functions matrix.
+    getShapeFunctionsDerivatives(r1, r2)
+        Get the shape functions derivatives with respect to the natural
+        coordinates.
+
+    Examples
+    --------
+    >>> 
+    """
+
+    degrees = 18
+
+    @staticmethod
+    def getShapeFunctions(r1, r2):
+
+        """
+        Get the shape functions matrix, that relates nodal quantities to 
+        element field quantities.
+
+        Parameters
+        ----------
+        r1, r2
+            The quadrilateral natural coordinates, ranging from -1 to 1, at
+            which the shape functions are evaluated.
+
+        Returns
+        -------
+        out: ndarray
+            The shape functions matrix of size (3 x 18), where 18 is the
+            number of degrees of freedom.
+        """
+
+        # shapeFunctions = np.array([
+        #          (1+r1)*(1+r2)*r1*r2/4, 
+        #         -(1-r1)*(1+r2)*r1*r2/4,
+        #          (1-r1)*(1-r2)*r1*r2/4, 
+        #         -(1+r1)*(1-r2)*r1*r2/4,
+        #         -(1+r1**2)*(1+r2)*r2/2, 
+        #          (1-r1)*(1+r2**2)*r1/2,
+        #         -(1-r1**2)*(1-r2)*r2/2, 
+        #          (1+r1)*(1-r2**2)*r1/2,
+        #          (1-r1**2)*(1-r2**2)])
+
+        shapeFunctions = np.array([
+                 (1+r1)*(1+r2)*r1*r2/4, 
+                -(1-r1)*(1+r2)*r1*r2/4,
+                 (1-r1)*(1-r2)*r1*r2/4, 
+                -(1+r1)*(1-r2)*r1*r2/4,
+                 (1-r1**2)*(1+r2)*r2/2,
+                -(1-r1)*r1*(1-r2**2)/2, # (1+r1)*(1-r2**2)*r1/2,
+                -(1-r1**2)*(1-r2)*r2/2, # -(1-r1)*r1*(1-r2)*r2/2, # -(1-r1**2)*(1-r2)*r2/2, 
+                 (1+r1)*r1*(1-r2**2)/2, #  (1-r1)*(1+r2**2)*r1/2,
+                 (1-r1**2)*(1-r2**2)])
+        out = np.zeros((2, 18))
+        cols = np.arange(0, 18, 2)
+
+        for row in range(2):
+            out[row, cols+row] = shapeFunctions
+
+        return out
+
+
+    @staticmethod
+    def getShapeFunctionsDerivatives(r1, r2):
+
+        """
+        Get the shape functions derivatives with respect to the natural 
+        coordiantes r1 and r2.
+
+        Parameters
+        ----------
+        r1, r2
+            The quadrilateral natural coordinates, ranging from -1 to 1, at
+            which the shape functions' derivatives are evaluated.
+
+        Returns
+        -------
+        out: ndarray
+            The shape functions derivatives of size (2 x 9), where 9 is the 
+            number of nodes.
+        """
+
+        out = np.zeros((2, 9))
+
+        # out[0, :2] = np.array([(1+r2)*(2*r1*r2+r2), (1+r2)*(2*r1*r2-r2)])/4
+        # out[0, 2:4] = np.array([-(1-r2)*(2*r1*r2-r2), -(1-r2)*(2*r1*r2+r2)])/4
+        # out[0, 4:6] = np.array([-2*r1*r2*(1+r2), (1-2*r1)*(1+r2**2)])/2
+        # out[0, 6:8] = np.array([2*r1*r2*(1-r2), (1+2*r1)*(1-r2**2)])/2
+        # out[0, 8:] = np.array([-2*r1*(1-r2**2)])
+
+        # out[1, :2] = np.array([(1+r1)*(2*r1*r2+r1), -(1-r1)*(2*r1*r2+r1)])/4
+        # out[1, 2:4] = np.array([-(1-r1)*(2*r1*r2-r1), (1+r1)*(2*r1*r2-r1)])/4
+        # out[1, 4:6] = np.array([-(1+r1**2)*(1+2*r2), (1-r1)*2*r1*r2])/2
+        # out[1, 6:8] = np.array([-(1-r1**2)*(1-2*r2), -(1+r1)*2*r1*r2])/2
+        # out[1, 8:] = np.array([-2*r2*(1-r1**2)])
+
+        out[0, :2] = np.array([(1+r2)*(2*r1*r2+r2), (1+r2)*(2*r1*r2-r2)])/4
+        out[0, 2:4] = np.array([-(1-r2)*(2*r1*r2-r2), -(1-r2)*(2*r1*r2+r2)])/4
+        out[0, 4:6] = np.array([-2*r1*r2*(1+r2), -(1-2*r1)*(1-r2**2)])/2
+        out[0, 6:8] = np.array([2*r1*r2*(1-r2), (1+2*r1)*(1-r2**2)])/2
+        out[0, 8:] = np.array([-2*r1*(1-r2**2)])
+
+        out[1, :2] = np.array([(1+r1)*(2*r1*r2+r1), -(1-r1)*(2*r1*r2+r1)])/4
+        out[1, 2:4] = np.array([-(1-r1)*(2*r1*r2-r1), (1+r1)*(2*r1*r2-r1)])/4
+        out[1, 4:6] = np.array([(1-r1**2)*(1+2*r2), (1-r1)*2*r1*r2])/2
+        out[1, 6:8] = np.array([-(1-r1**2)*(1-2*r2), -(1+r1)*2*r1*r2])/2
+        out[1, 8:] = np.array([-2*r2*(1-r1**2)])
+
+        return out
