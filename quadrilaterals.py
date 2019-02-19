@@ -16,9 +16,9 @@ class Quadrilateral(abc.ABC):
 
     Methods
     -------
-    getGlobalStiffness(ncoords, irule, cmatrix)
+    getStiffness(ncoords, cmatrix, thickness, irule)
         Get the global stiffness matrix.
-    getGlobalMass(ncoords, irule, mdensity)
+    getMass(ncoords, mdensity, thickness, irule)
         Get the global mass matrix.
     getJacobian(ncoords, r1, r2)
         Get the Jacobian.
@@ -26,7 +26,7 @@ class Quadrilateral(abc.ABC):
         Get the deformation matrix.
     """
 
-    def getGlobalStiffness(self, ncoords, cmatrix, thickness, irule):
+    def getStiffness(self, ncoords, cmatrix, thickness, irule):
 
         """
         Get the global stiffness matrix.
@@ -44,41 +44,22 @@ class Quadrilateral(abc.ABC):
             points. The first two columns contain the sample points while the
             last one contains the corresponding weights.
 
-        (Take into account the different constitutive matrix and thickness for each integration point.)
-
         Returns
         -------
-        kglobal: ndarray
+        stiffness: ndarray
             The global stiffness matrix.
         """
 
-        kglobal = np.zeros((self.degrees, self.degrees))
+        stiffness = np.zeros((self.degrees, self.degrees))
 
-        if cmatrix.ndim != 3:
-            cmatrix = cmatrix[np.newaxis]
-            nm = np.zeros(irule.shape[0], dtype=int)
+        for C, t, (r1, r2, w1, w2) in zip(cmatrix, thickness, irule):
+            B, jacobian = self.getDeformationMatrix(ncoords, r1, r2)
+            stiffness += w1*w2*B.T.dot(C).dot(B)*np.linalg.det(jacobian)*t
 
-        for i, (r1, r2, w1, w2) in zip(nm, irule):
-            jacobian = self.getJacobian(ncoords, r1, r2)
-            B = self.getDeformationMatrix(ncoords, r1, r2)
-            kglobal += w1*w2*B.T.dot(cmatrix[i]).dot(B)*np.linalg.det(jacobian)
-
-        return kglobal
+        return stiffness
 
 
-    def evaluateStiffness(self, ncoords, cmatrix, thickness, point):
-
-        pass
-
-
-    def integrate(self, ncoords, irule, function, **kwargs):
-
-        for r1, r2, w1, w2, arg in zip(irule, args):
-
-            quantity += w1*w2*function(args)
-
-
-    def getGlobalMass(self, ncoords, mdensity, thickness, irule):
+    def getMass(self, ncoords, mdensity, thickness, irule):
 
         """
         Get the global mass matrix.
@@ -88,34 +69,69 @@ class Quadrilateral(abc.ABC):
         ncoords: ndarray
             The nodal coordinates (n x 2), where n is the number of nodes.
         mdensity: ndarray
-            The material density at the integration points.
+            The material density at integration points.
         thickness: ndarray
-            The element thickness at the integration points.
+            The element thickness at integration points.
         irule: ndarray
             The integration rule (p x 4), where p is the number of integration
             points. The first two columns contain the sample points while the
             last one contains the corresponding weights.
 
-        (Take into account different density and thickness on each integration point)
-
         Returns
         -------
-        mglobal: ndarray
+        mass: ndarray
             The global mass matrix.
         """
 
-        mglobal = np.zeros((self.degrees, self.degrees))
+        mass = np.zeros((self.degrees, self.degrees))
 
-        if cmatrix.ndim != 3:
-            cmatrix = cmatrix[np.newaxis]
-            nm = np.zeros(irule.shape[0], dtype=int)
-
-        for r1, r2, w1, w2 in irule:
+        for density, t, (r1, r2, w1, w2) in zip(mdensity, thickness, irule):
             N = self.getShapeFunction(r1, r2)
             jacobian = self.getJacobian(ncoords, r1, r2)
-            mglobal += w1*w2*N.T.dot(N)*density*np.linalg.det(jacobian)
+            mass += w1*w2*N.T.dot(N)*density*np.linalg.det(jacobian)*t
 
-        return kglobal
+        return mass
+
+
+    def getStiffnessMass(self, ncoords, cmatrix, thickness, mdensity, irule):
+
+        """
+        Get the global stiffness and mass matrix.
+
+        Parameters
+        ----------
+        ncoords: ndarray
+            The nodal coordinates (n x 2), where n is the number of nodes.
+        cmatrix: ndarray
+            The material constitutive matrix at the integration points.
+        thickness: ndarray
+            The element thickness at integration points.
+        mdensity: ndarray
+            The material density at integration points.
+        irule: ndarray
+            The integration rule (p x 4), where p is the number of integration
+            points. The first two columns contain the sample points while the
+            last one contains the corresponding weights.
+
+        Returns
+        -------
+        stiffness: ndarray
+            The global stiffness matrix.
+        mass: ndarray
+            The global mass matrix.
+        """
+
+        stiffness = np.zeros((self.degrees, self.degrees))
+        mass = np.zeros((self.degrees, self.degrees))
+
+        for C, r, t, (r1, r2, w1, w2) in zip(cmatrix, mdensity, thickness, irule):
+            B, jacobian = self.getDeformationMatrix(ncoords, r1, r2)
+            N = self.getShapeFunction(r1, r2)
+
+            stiffness += w1*w2*B.T.dot(C).dot(B)*np.linalg.det(jacobian)*t
+            mass += w1*w2*N.T.dot(N)*r*np.linalg.det(jacobian)*t
+
+        return stiffness, mass
 
 
     def getDeformationMatrix(self, ncoords, r1, r2):
@@ -132,14 +148,16 @@ class Quadrilateral(abc.ABC):
 
         Returns
         -------
-        out: ndarray
+        deformation: ndarray
             The deformation matrix.
+        jacobian: ndaray
+            The jacobian matrix.
         """
 
         jacobian = self.getJacobian(ncoords, r1, r2)
         derivatives = self.getShapeFunctionsDerivatives(r1, r2)
         data = np.linalg.inv(jacobian).dot(derivatives).T
-        deformationMatrix = np.zeros((3, self.degrees))
+        deformation = np.zeros((3, self.degrees))
 
         cols = np.arange(0, self.degrees, 2)
         rows = [0, 1, 2, 2]
@@ -147,9 +165,9 @@ class Quadrilateral(abc.ABC):
         entries = [0, 1, 1, 0]
 
         for row, shift, entry in zip(rows, shifts, entries):
-            deformationMatrix[row, cols+shift] = data[:, entry]
+            deformation[row, cols+shift] = data[:, entry]
 
-        return deformationMatrix
+        return deformation, jacobian
 
 
 
