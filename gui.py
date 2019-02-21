@@ -17,11 +17,6 @@ from matplotlib.figure import Figure
 __author__ = 'Konstantinos Tatsis'
 __email__ = 'konnos.tatsis@gmail.com'
 
-# 1. One object for the entire GUI (Main)
-# 2. One object for creation of sequence of scenarios (Scenario)
-# 3. One object for problem settings (for each scenario)
-# 4. One object for analysis settings (for each scenario)
-
 
 class Main(tk.Frame):
 
@@ -35,7 +30,7 @@ class Main(tk.Frame):
         self.frame = tk.Frame(self.root)
         self.frame.grid()
 
-        # instantiate other objects
+        # Instantiate the GUI widgets
 
         self.scenario = Scenario(self)
         self.model = Model(self, row=0, column=1)
@@ -107,14 +102,15 @@ class Main(tk.Frame):
 
 class Job:
 
+    """ Class for defining and interfacing with Job properties. """
 
     def __init__(self):
         values = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.material = {'values': values, 'temperature': False}
 
         values = {(0, 0): '200000000000', (0, 1): '200000000000', (0, 2): '25'}
-        self.boundaries = {'values1': values, 'values2':values, 
-                'values3': values, 'temperature': False, 'identical': False}
+        self.boundaries = {'left': values, 'mid':values, 
+                'right': values, 'temperature': False, 'identical': False}
 
         values = {(0, 0): '10', (0, 1):'0.5'}
         self.corrosion = {'values': values, 'spatial': False}
@@ -130,11 +126,11 @@ class Job:
         self.material['temperature'] = temperature
 
 
-    def setBoundaries(self, values1, values2, values3, temperature, identical):
+    def setBoundaries(self, left, mid, right, temperature, identical):
 
-        self.boundaries['values1'] = values1
-        self.boundaries['values2'] = values2
-        self.boundaries['values3'] = values3
+        self.boundaries['left'] = left
+        self.boundaries['mid'] = mid
+        self.boundaries['right'] = right
         self.boundaries['temperature'] = temperature
         self.boundaries['identical'] = identical
 
@@ -675,16 +671,16 @@ class BoundaryConditions:
             check2.select()
 
         # Insert table values to all three boundaries, based on job definition
-        for (i, j) in self.parent.job.boundaries['values1'].keys():
-            value = self.parent.job.boundaries['values1'][(i, j)]
+        for (i, j) in self.parent.job.boundaries['left'].keys():
+            value = self.parent.job.boundaries['left'][(i, j)]
             self.widgets['lcells'][i][j].insert(tk.END, value)
 
-        for (i, j) in self.parent.job.boundaries['values2'].keys():
-            value = self.parent.job.boundaries['values2'][(i, j)]
+        for (i, j) in self.parent.job.boundaries['mid'].keys():
+            value = self.parent.job.boundaries['mid'][(i, j)]
             self.widgets['mcells'][i][j].insert(tk.END, value)
 
-        for (i, j) in self.parent.job.boundaries['values3'].keys():
-            value = self.parent.job.boundaries['values3'][(i, j)]
+        for (i, j) in self.parent.job.boundaries['right'].keys():
+            value = self.parent.job.boundaries['right'][(i, j)]
             self.widgets['rcells'][i][j].insert(tk.END, value)
 
         self.callbackIdenticalBCs()
@@ -741,32 +737,33 @@ class BoundaryConditions:
 
 
         # Store non-zero table data of all three supports into a dictionary
-        values1 = {}
+        valuesLeft = {}
         for i, columns in enumerate(self.widgets['lcells']):
             for j, column in enumerate(columns):
                 value = column.get()
                 if value != '':
-                    values1[(i, j)] = value
+                    valuesLeft[(i, j)] = value
 
-        values2 = {}
+        valuesMid = {}
         for i, columns in enumerate(self.widgets['mcells']):
             for j, column in enumerate(columns):
                 value = column.get()
                 if value != '':
-                    values2[(i, j)] = value
+                    valuesMid[(i, j)] = value
 
-        values3 = {}
+        valuesRight = {}
         for i, columns in enumerate(self.widgets['rcells']):
             for j, column in enumerate(columns):
                 value = column.get()
                 if value != '':
-                    values3[(i, j)] = value
+                    valuesRight[(i, j)] = value
 
         # Save material data into the current job
         temp = self.widgets['temp'].get()
         identical = self.widgets['identicalBCs'].get()
+
         print('1', temp, identical)
-        self.parent.job.setBoundaries(values1, values2, values3, temp, identical)
+        self.parent.job.setBoundaries(valuesLeft, valuesMid, valuesRight, temp, identical)
         print('2', self.parent.job.boundaries['temperature'], self.parent.job.boundaries['identical'])
 
         # Switch parent widgets back to normal state
