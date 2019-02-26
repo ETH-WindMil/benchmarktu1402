@@ -24,7 +24,7 @@ class Modal:
     tolerance
         The relative accuracy for eigenvalues.
     sigma
-        ...
+        The sigma value for shift-invert mode.
     numberOfEigenvalues
         The number of eigenvalues to be extracted.
     normalizationMethod
@@ -35,7 +35,7 @@ class Modal:
     Methods
     -------
     setSigmaValue(sigma)
-        ...
+        Specify the sigma value, near which the eigenvalues are calculated.
     setTolerance(tolerance)
         Specify the relative accuracy for eigenvalues.
     setNumberOfEigenvalues(number)
@@ -49,56 +49,32 @@ class Modal:
     """
 
     def __init__(self, model):
-        self.mesh = model # remove this when changed from all methods
 
-        self._model = model
-
+        self.model = model
         self.tolerance = 0
         self.sigma = 0
         self.numberOfEigenvalues = 1
         self.normalizationMethod = 'Mass'
         self.returnModeShapes = True
 
-        # Include flow information
 
-    def Properties(self, m=5, sig=0, norm='mass'):
-
-        self.stiffness = Model.Stiffness(self._model)
-        self.mass = Model.Mass(self._model)
-
-        Ma = self.mass.getFFMatrix() # self.mass.ff()
-        K = self.stiffness.getFFMatrix() # self.stiffness.ff()
-        values, vectors = spslinalg.eigsh(K, m, M=Ma, sigma=sig)#, tol=1e-10)
-
-        # check if modes are already normalized
-
-        # M = M.toarray()
-        # for j in range(vecs.shape[1]):
-        #     vecs[:, j] = vecs[:, j]/np.sqrt(vecs[:, j].dot(M).dot(vecs[:, j]))
-
-        if np.any(values<0):
-            index = np.where(values>=0)
-            values, vectors = values[index[0]], vectors[:, index[0]]
-            warnings.warn(str(len(index[0]))+' negative eigevalues found')
-
-        # Fill-in with zeros for the constrained nodes and return the entire mode-shape vector
-        # self.modes = np.zeros((len(self._model.ndof2), m))
-        # self.modes[list(self._model.fdof2.values()), :] = vectors
-        # self.modes[list(self._model.rdof2.values()), :] = 0
-
-        self.frequencies = np.sqrt(values)/(2*np.pi)
-        self.modes = vectors
-
-
-    def setSigmaValue(self, value):
+    def setSigmaValue(self, sigma):
 
         """
+        Specify the sigma value, near which the eigenvalues are calculated
+        using shift-invert mode of the "scipy.sparse.linalg.eigsh" algorithm.
+
+        Parameters
+        ----------
+        sigma: real
+            The sigma value.
         """
 
-        if value <= 0:
-            message = 'Sigma must be positive and non-zero'
-            raise TypeError(message)
-        self.sigma = value
+        if sigma <= 0:
+            error = 'Sigma must be positive and non-zero'
+            raise TypeError(error)
+
+        self.sigma = sigma
 
 
     def setTolerance(self, tolerance):
@@ -195,8 +171,8 @@ class Modal:
         Submit the modal analysis
         """
 
-        stiffness = Model.Stiffness(self._model).getFFMatrix()
-        mass = Model.Mass(self._model).getFFMatrix()
+        stiffness = Model.Stiffness(self.model).getFFMatrix()
+        mass = Model.Mass(self.model).getFFMatrix()
 
         values = spslinalg.eigsh(stiffness, k=self.numberOfEigenvalues,
                 M=mass, sigma=self.sigma, tol=self.tolerance,
@@ -222,9 +198,9 @@ class Modal:
 
             # check if vectors has more than one columns.
             # If not, vectors.shape[1] will raise an error
-            self.modes = np.zeros((len(self._model.ndof2), vectors.shape[1]))
-            self.modes[list(self._model.fdof2.values()), :] = vectors
-            self.modes[list(self._model.rdof2.values()), :] = 0
+            self.modes = np.zeros((len(self.model.ndof2), vectors.shape[1]))
+            self.modes[list(self.model.fdof2.values()), :] = vectors
+            self.modes[list(self.model.rdof2.values()), :] = 0
         else:
             self.modes = None
             if np.any(values<0):
@@ -237,33 +213,20 @@ class Modal:
         self.frequencies = np.sqrt(values)/(2*np.pi)
 
 
-# class Modal(object):
-
-#     def __init__(self, mesh, m=1, sigma=1, norm='mass'):
-#         self.mesh = mesh
-#         self.m = m
-#         self.sigma = sigma
-#         self.norm = norm
-
-
-#     def analyze(self):
-#         self.stiffness = model.Stiffness(self.mesh)
-#         self.mass = model.Mass(self.mesh)
-
-#         K = self.stiffness.ff()
-#         M = self.mass.ff()
-
-#         vals, vecs = linalg.eigsh(K, self.m, M, self.sigma)
-
-#         self.modes = np.zeros((len(self.mesh.ndof2), self.m))
-#         self.modes[list(self.mesh.fdof2.values()), :] = vecs
-#         self.modes[list(self.mesh.rdof2.values()), :] = 0
-
-#         self.frequencies = np.sqrt(vals)/(2*np.pi)
-
-
 
 class TransientDynamic(object):
+
+    """
+    Methods
+    -------
+    setTimePeriod(period)
+        ...
+    setIncrementSize(size)
+        ...
+    submit()
+        ...
+    """
+
 
     def __init__(self, mesh, duration, step, method='linear'):
         self.mesh = mesh
@@ -273,6 +236,123 @@ class TransientDynamic(object):
             raise TypeError('Invalid Newmark method')
         else:
             self.method = method
+
+        self.timePeriod = 0
+        self.incrementSize = 0
+
+
+    def setTimePeriod(self, period):
+
+        """
+        Specify the time period.
+
+        Parameters
+        ----------
+        period: float, positive
+            The simulation time period.
+
+        Raises
+        ------
+        TypeError
+            If period is not positive.
+        """
+
+        if period <= 0:
+            raise TypeError('Time period must be positive.')
+
+        self.timePeriod = period
+
+
+    def setIncrementSize(self, size):
+
+        """
+        Specify the increment size.
+
+        Parameters
+        ----------
+        size: float, positive
+            The increment size.
+
+        Raises
+        ------
+        TypeError
+            If the increment size is not positive.
+        """
+
+        if size <= 0:
+            raise TypeError('Increment size must be positive.')
+
+        self.incrementSize = size
+
+
+
+
+    def submit(self):
+
+        modal = Modal(self.model)
+        modal.setTolerance()
+        modal.setNumberOfEigenvalues()
+        modal.submit()
+
+        frequencies = modal.frequencies
+        modes = modal.modes
+
+
+        beta, gamma = 1/6, 1/2
+        period, step = self.timePeriod, self.incrementSize
+
+        if step > 0.1*(1/frequencies[-1]):
+            step = 0.1*(1/frequencies[-1])
+
+        time = np.arange(0, period+step, step)
+        damping = 0 # !!!!!!!!!!!!!!
+
+        dsp = np.zeros((len(frequencies), len(time)))
+        vlc = np.zeros((len(frequencies), len(time)))
+        acc = np.zeros((len(frequencies), len(time)))
+
+        K = (np.diag(frequencies)*2*np.pi)**2
+        C = np.diag(frequencies)*2*np.pi*2*damping
+        M = np.eye(len(frequencies))
+
+        # { Construct modal force vector
+
+        loads = np.zeros((len(self.model.loads), len(time)))
+
+        for j, load in enumerate(self.model.loads):
+            loads[i] = np.interp(time, load[0], load[1])
+
+        frc = model.T.dot(self.model.Sp).dot(loads)
+
+        # }
+
+        efrc = -C.dot(vlc[:, 0])-K.dot(dsp[:, 0])
+        acc[:, 0] = np.linalg.solve(M, frc[:, 0]+efrc)
+
+        a1 = 1/(beta*step**2)*M+gamma/(beta*step)*C
+        a2 = 1/(beta*step)*M+(gamma/beta-1)*C
+        a3 = (1/(2*beta)-1)*M+step*(gamma/(2*beta)-1)*C
+        Ki = np.linalg.inv(K+a1)
+
+        c1 = gamma/(beta*step)
+        c2 = 1-gamma/beta
+        c3 = step*(1-gamma/(2*beta))
+        c4 = 1/(beta*step**2)
+        c5 = -1/(beta*step)
+        c6 = -(1/(2*beta)-1)
+
+        for j in range(len(time)-1):
+
+            efrc = a1.dot(dsp[:, j])+a2.dot(vlc[:, j])+a3.dot(acc[:, j])
+            dsp[:, j+1] = Ki.dot(frc[:, j+1]+efrc)
+
+            vlc[:, j+1] = c1*(dsp[:, j+1]-dsp[:, j])+c2*vlc[:, j]+c3*acc[:, j]
+            acc[:, j+1] = c4*(dsp[:, j+1]-dsp[:, j])+c5*vlc[:, j]+c6*acc[:, j]
+
+        self.displacement = dsp
+        self.velocity = vlc
+        self.acceleration = acc
+
 
 
     def analyze(self):
