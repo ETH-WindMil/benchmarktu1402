@@ -1,6 +1,6 @@
 import os
 import quadrature
-import membrane
+# import membrane
 import quadrilaterals
 import analysis
 import model
@@ -9,6 +9,8 @@ import material
 import numpy as np
 import itertools as it
 
+
+import matplotlib.pyplot as plt
 
 
 def main(job):
@@ -60,6 +62,9 @@ def main(job):
             
     elements = []
 
+    elm = quadrilaterals.Quad4()
+    quadr = quadrature.Gauss.inQuadrilateral(rule=3).info
+
     for index in indices:
         nodesEl = [nodes[index],
                    nodes[index+nel_y+1],
@@ -71,8 +76,9 @@ def main(job):
               nodes[index+1].coords[0])/4
     #    th = np.interp(xc, points, widths)
     #    th = np.interp(xc, [0, 27], [width_start, width_end])
-        th = 0.1
-        elements.append(membrane.Quad4(nodesEl, mat, th))
+
+        thickness = np.ones(9)*0.1
+        materials = [mat]*9
 
         # { Interpolate temperature at gauss points
 
@@ -82,6 +88,8 @@ def main(job):
         # { Interpolate thickness at gauss points
 
         # }
+
+        elements.append(model.Element(nodesEl, elm, materials, thickness, quadr))
 
 
 
@@ -94,11 +102,45 @@ def main(job):
 
     for node in nodes:
         if node.coords[0] == 0:
-            model.Constraint(mesh).Nodal(node.iD, ['x', 'y'])
+            model.Constraint(mesh).Nodal(node.label, ['x', 'y'])
         elif node.coords[0] == length:
-            model.Constraint(mesh).Nodal(node.iD, ['x', 'y'])
+            model.Constraint(mesh).Nodal(node.label, ['x', 'y'])
         elif node.coords[0] == length/2 and node.coords[1] == -height_start/2:
-            model.Constraint(mesh).Nodal(node.iD, ['x', 'y'])
+            model.Constraint(mesh).Nodal(node.label, ['x', 'y'])
+
+
+    modal = analysis.Modal(mesh)
+    modal.setNumberOfEigenvalues(10)
+    modal.submit()
+
+    print(modal.frequencies)
+
+
+    # { Plot mode shapes
+
+    plt.figure(1)
+
+    for mode_no in range(4):
+        for item, mode in zip(list(mesh.ndof2.keys()), modal.modes[:, mode_no]):
+            nodes[item[0]].dsp[item[1]] = mode
+
+        n = str(mode_no+1)
+        
+        plt.subplot('41'+n)
+        plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
+        
+        plt.xlim(0, length)
+        
+        plt.xticks([], [])
+        plt.yticks([], [])
+
+        for i in range(len(elements)):
+            elements[i].deformed(scale=1e2)
+            
+    plt.tight_layout()
+    plt.show()
+
+    # }
 
 
     # { Run analysis
@@ -109,3 +151,7 @@ def main(job):
     # { Export results
 
     # }
+
+
+if __name__ == '__main__':
+    main(0)
