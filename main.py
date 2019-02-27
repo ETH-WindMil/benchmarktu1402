@@ -30,8 +30,14 @@ def main(job):
             [1.8e11, 0.3, 10],
             [1.8e11, 0.3, 25]])
 
-    jboundaries = np.array([
-            [0, 0, 0]])
+    jboundary1 = np.array([
+            [1e15, 1e11, 20]])
+
+    jboundary2 = np.array([
+            [1e15, 1e11, 20]])
+
+    jboundary3 = np.array([
+            [1e15, 1e11, 20]])
 
     jwastage = np.array([
             [0.1, 0.0],
@@ -42,7 +48,7 @@ def main(job):
             [15, 0.5]])
 
     janalysis = 'Modal'
-    jsettings = 0
+    jsettings = {'modes': 5, 'normalization': 'Mass'}
     jname = 'Job-1'
 
 
@@ -160,12 +166,24 @@ def main(job):
 
     model1 = model.Model(nodes, elements)
 
+    # Interpolate temperature at boundary locations
+
+    temp1 = np.interp(0, jtemperature[:, 1]*length, jtemperature[:, 0])
+    temp2 = np.interp(length/2, jtemperature[:, 1]*length, jtemperature[:, 0])
+    temp3 = np.interp(length, jtemperature[:, 1]*length, jtemperature[:, 0])
+
+    # Interpolate boundary values at temperature value
+
+    kx1 = np.interp(temp1, jboundary1[:, 2], jboundary1[:, 0])
+    ky1 = np.interp(temp1, jboundary1[:, 2], jboundary1[:, 1])
+
+    kx2 = np.interp(temp2, jboundary2[:, 2], jboundary2[:, 0])
+    ky2 = np.interp(temp2, jboundary2[:, 2], jboundary2[:, 1])
+
+    kx3 = np.interp(temp3, jboundary3[:, 2], jboundary3[:, 0])
+    ky3 = np.interp(temp3, jboundary3[:, 2], jboundary3[:, 1])
 
     #  Apply boundary conditions
-
-    kx1, ky1 = 1e15, 1e11
-    kx2, ky2 = 1e15, 1e11
-    kx3, ky3 = 1e15, 1e11
 
     for node in nodes:
         x, y = node.coords[0], node.coords[1]
@@ -211,15 +229,27 @@ def main(job):
     if janalysis == 'Modal':
 
         modal = analysis.Modal(model1)
-        modal.setNumberOfEigenvalues(10)
+        modal.setNumberOfEigenvalues(jsettings['modes'])
+        modal.setNormalizationMethod(jsettings['normalization'])
         modal.submit()
+
+        # Extract mode shapes at output locations
+
+        labels = []
+        output = []
 
     else:
 
-        pass
+        dynamics = analysis.TransientDynamics(model1)
+        dynamics.setTimePeriod(100)
+        dynamics.setIncrementSize(0.01)
+
+        # Extract time response at output locations
+
+        labels = []
+        output = []
 
     print(modal.frequencies)
-
 
     #  Plot mode shapes
 
@@ -241,21 +271,22 @@ def main(job):
 
         for i in range(len(elements)):
 
-            if elements[i].label in [294, 295, 296, 297, 298, 299]:
+            if elements[i].label in damagedElements:
                 clr = 'k'
+                width = 1
             else:
                 clr = 'r'
+                width = 0.5
 
-            elements[i].deformed(scale=1e2, color=clr)
-            
+            elements[i].deformed(scale=1e2, color=clr, lnwidth=width)
+
     plt.tight_layout()
     plt.show()
 
 
+    #  Save results
 
-    # { Export results
-
-    # }
+    np.savetxt(jname+'.dat', output, header=labels)
 
 
 if __name__ == '__main__':
