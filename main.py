@@ -17,21 +17,30 @@ def main(job):
 
     # { Read job object
 
+    # settings = job.getSettings()
+
+    # material = settings['temperature']
+    # boundaries = settigns['boundaries']
+    # corrosion = settings['corrosion']
+    # temperature = settings['temperature']
+
     # }
 
     ###   Define Geometry
 
-    length = 20           # along x-axis
+    length = 20                 # Dimension in x-axis
 
-    height_start = 0.60   # along y-axis
+    height_start = 0.60         # Dimension in y-axis
     height_end = 0.60
 
-    width_start = 0.1     # along z-axis
+    width_start = 0.1           # Dimension in z-axis
     width_end = 0.1
 
-    nel_x = 200           # Number of elements in x-axis
-    nel_y = 6             # Number of elements in y-axis
+    nel_x = 200                 # Number of elements in x-axis
+    nel_y = 6                   # Number of elements in y-axis
 
+    el_size_x = length/nel_x    # Element size in x-direction
+    el_size_y = length/nel_y    # Element size in y-direction
 
     E = 1.8e11
     n = 0.3
@@ -45,6 +54,7 @@ def main(job):
     nodes = []
     indices = []
 
+    # { Define nodes
 
     for i, x in enumerate(points_x):
 
@@ -59,11 +69,15 @@ def main(job):
             if x < length-1e-10 and y < h/2-1e-10:
                 indices.append(label)
 
+    # }
+    
+
+    # {Define elements
             
     elements = []
 
     elm = quadrilaterals.Quad4()
-    quadr = quadrature.Gauss.inQuadrilateral(rule=3).info
+    irule = quadrature.Gauss.inQuadrilateral(rule=3).info
 
     for index in indices:
         nodesEl = [nodes[index],
@@ -89,24 +103,44 @@ def main(job):
 
         # }
 
-        elements.append(model.Element(nodesEl, elm, materials, thickness, quadr))
 
+        # { Define elements and modify damaged ones
 
+        elements.append(model.Element(nodesEl, elm, materials, thickness, irule))
 
-    # { Modify damaged elements
+        # }
 
     # }
 
-
-    mesh = model.Mesh(nodes, elements)
+    mesh = model.Model(nodes, elements)
 
     for node in nodes:
-        if node.coords[0] == 0:
-            model.Constraint(mesh).Nodal(node.label, ['x', 'y'])
-        elif node.coords[0] == length:
-            model.Constraint(mesh).Nodal(node.label, ['x', 'y'])
-        elif node.coords[0] == length/2 and node.coords[1] == -height_start/2:
-            model.Constraint(mesh).Nodal(node.label, ['x', 'y'])
+        x, y = node.coords[0], node.coords[1]
+        # Left-hand side constraints
+        if x == 0 and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == el_size_x and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == el_size_x*2 and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        # Mid-point constraints
+        elif x == length/2-el_size_x*2 and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == length/2-el_size_x and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == length/2 and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == length/2+el_size_x and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == length/2+el_size_x*2 and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        # Right-hand side constraints
+        elif x == length-el_size_x*2 and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == length-el_size_x and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
+        elif x == length and y == -height_start/2:
+            model.Constraint(mesh).addSpring(node.label, ['x', 'y'], [1e9, 1e9])
 
 
     modal = analysis.Modal(mesh)
