@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 def main(job):
 
-    # { Read job object
+    #  Read job object
 
     # settings = job.getSettings()
 
@@ -23,11 +23,16 @@ def main(job):
     # corrosion = settings['corrosion']
     # temperature = settings['temperature']
 
+    jmodel = 'Damaged state 6'
+    jthickness = 0.1
+    jdamage = 0
     jmaterial = np.array([
             [1.8e11, 0.3, 10],
             [1.8e11, 0.3, 25]])
 
-    jthickness = 0.1
+    jboundaries = np.array([
+            [0, 0, 0]])
+
     jwastage = np.array([
             [0.1, 0.0],
             [0.1, 0.5]])
@@ -36,17 +41,33 @@ def main(job):
             [10, 0.0],
             [15, 0.5]])
 
-    # }
+    janalysis = 'Modal'
+    jsettings = 0
+    jname = 'Job-1'
 
 
-    # { Define damaged areas
+    #  Define element labels of damaged areas
 
-    # }
+    if jmodel == 'Healthy state':
+        damagedElements = []
+    elif jmodel == 'Damaged state 1':
+        damagedElements = [49*6]
+    elif jmodel == 'Damaged state 2':
+        damagedElements = [49*6, 49*6+1]
+    elif jmodel == 'Damaged state 3':
+        damagedElements = [49*6, 49*6+1, 49*6+2]
+    elif jmodel == 'Damaged state 4':
+        damagedElements = [100*6]
+    elif jmodel == 'Damaged state 5':
+        damagedElements = [100*6, 100*6+1]
+    elif jmodel == 'Damaged state 6':
+        damagedElements = [100*6, 100*6+1, 100*6+2]
 
 
     #  Define Geometry
 
     length = 20                 # Dimension in x-axis
+    density = 2000              # Material density
 
     height_start = 0.60         # Dimension in y-axis
     height_end = 0.60
@@ -60,11 +81,6 @@ def main(job):
     el_size_x = length/nel_x    # Element size in x-direction
     el_size_y = length/nel_y    # Element size in y-direction
 
-    E = 1.8e11
-    n = 0.3
-    density = 2000
-    mat = material.LinearElastic(E, n, density)
-
     points_x = np.arange(0, length*(1+1/nel_x)-1e-10, length/nel_x)
     counter = it.count(0)
 
@@ -72,7 +88,8 @@ def main(job):
     nodes = []
     indices = []
 
-    # { Define nodes
+
+    #  Define model nodes
 
     for i, x in enumerate(points_x):
 
@@ -85,15 +102,12 @@ def main(job):
             label = next(counter)
             
             if x < length-1e-10 and y < h/2-1e-10:
-                indices.append(label)
+                indices.append(label)    
 
-    # }
-    
 
-    # {Define elements
+    #  Define model elements
 
     elements = []
-
     etype = quadrilaterals.Quad4()
     irule = quadrature.Gauss.inQuadrilateral(rule=3).info
 
@@ -117,11 +131,15 @@ def main(job):
 
         temperature = np.interp(xi, jtemperature[:, 1]*length, jtemperature[:, 0])
 
+        #  Calculate stiffnes reduction
+
+        reduction = jdamage if j in damagedElements else 1
+
         #  Define material properties for each integration point
 
-        materials = []
-        E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])
+        E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])*reduction
         n = np.interp(xi, jmaterial[:, 2], jmaterial[:, 1])
+        materials = []
 
         for k in range(len(xi)):
             materials.append(material.LinearElastic(E[k], n[k], density))
@@ -137,9 +155,11 @@ def main(job):
         elements.append(model.Element(enodes, etype, materials, thickness, irule))
 
 
+
     #  Initialize model
 
     model1 = model.Model(nodes, elements)
+
 
     #  Apply boundary conditions
 
@@ -160,32 +180,30 @@ def main(job):
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
         elif x == el_size_x*3 and y == -height_start/2:
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        
+
         #  Mid-point constraints
 
         elif x == length/2-el_size_x*2 and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2-el_size_x and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2 and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2+el_size_x and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2+el_size_x*2 and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
+
         #  Right-hand side constraints
 
         elif x == length-el_size_x*3 and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
         elif x == length-el_size_x*2 and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
         elif x == length-el_size_x and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
         elif x == length and y == -height_start/2:
-            model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-
-    # }
+            model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
 
 
     #  Run analysis
@@ -222,7 +240,13 @@ def main(job):
         plt.yticks([], [])
 
         for i in range(len(elements)):
-            elements[i].deformed(scale=1e2)
+
+            if elements[i].label in [294, 295, 296, 297, 298, 299]:
+                clr = 'k'
+            else:
+                clr = 'r'
+
+            elements[i].deformed(scale=1e2, color=clr)
             
     plt.tight_layout()
     plt.show()
@@ -235,4 +259,4 @@ def main(job):
 
 
 if __name__ == '__main__':
-    main(0)
+    main(None)
