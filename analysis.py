@@ -133,7 +133,7 @@ class Modal:
             If an invalid normalization method is specified.
         """
 
-        if method not in ['displacement', 'mass']:
+        if method.lower() not in ['displacement', 'mass']:
             error = 'Normalization method must be either "{}" or "{}".'
             raise TypeError(error.format('Displacement', 'Mass'))
 
@@ -171,10 +171,10 @@ class Modal:
         Submit the modal analysis
         """
 
-        stiffness = Model.Stiffness(self.model).getFFMatrix()
-        mass = Model.Mass(self.model).getFFMatrix()
+        stiffness = model.Stiffness(self.model).getPartitionFF()
+        mass = model.Mass(self.model).getPartitionFF()
 
-        values = spslinalg.eigsh(stiffness, k=self.numberOfEigenvalues,
+        values = linalg.eigsh(stiffness, k=self.numberOfEigenvalues,
                 M=mass, sigma=self.sigma, tol=self.tolerance,
                 return_eigenvectors=self.returnModeShapes)
 
@@ -290,13 +290,11 @@ class TransientDynamic(object):
     def submit(self):
 
         modal = Modal(self.model)
-        modal.setTolerance()
-        modal.setNumberOfEigenvalues()
+        modal.setNumberOfEigenvalues(10)
         modal.submit()
 
         frequencies = modal.frequencies
         modes = modal.modes
-
 
         beta, gamma = 1/6, 1/2
         period, step = self.timePeriod, self.incrementSize
@@ -305,6 +303,8 @@ class TransientDynamic(object):
             step = 0.1*(1/frequencies[-1])
 
         time = np.arange(0, period+step, step)
+
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!
         damping = 0 # !!!!!!!!!!!!!!
 
         dsp = np.zeros((len(frequencies), len(time)))
