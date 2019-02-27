@@ -45,7 +45,7 @@ class Modal:
     setReturnModeShapes(value)
         Specify if mode shapes are returned in addition to eigenvalues.
     submit()
-        Submit for analysis.
+        Submit analysis.
     """
 
     def __init__(self, model):
@@ -148,7 +148,7 @@ class Modal:
         Parameters
         ----------
         value: bool
-            ...
+            The flag determining whether mode shapes are extracted or not.
 
         Raises
         ------
@@ -168,7 +168,7 @@ class Modal:
     def submit(self):
 
         """
-        Submit the modal analysis
+        Submit the analysis.
         """
 
         stiffness = model.Stiffness(self.model).getPartitionFF()
@@ -220,11 +220,11 @@ class TransientDynamic(object):
     Methods
     -------
     setTimePeriod(period)
-        ...
+        Specify the simulation time period.
     setIncrementSize(size)
-        ...
+        Specify the solution time increment.
     submit()
-        ...
+        Submit analysis.
     """
 
 
@@ -244,7 +244,7 @@ class TransientDynamic(object):
     def setTimePeriod(self, period):
 
         """
-        Specify the time period.
+        Specify the simulation time period.
 
         Parameters
         ----------
@@ -266,7 +266,7 @@ class TransientDynamic(object):
     def setIncrementSize(self, size):
 
         """
-        Specify the increment size.
+        Specify the solution increment size.
 
         Parameters
         ----------
