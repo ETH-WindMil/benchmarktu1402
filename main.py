@@ -26,6 +26,7 @@ def main(job):
     jmodel = 'Damaged state 6'
     jthickness = 0.1
     jdamage = 0
+
     jmaterial = np.array([
             [1.8e11, 0.3, 10],
             [1.8e11, 0.3, 25]])
@@ -63,11 +64,11 @@ def main(job):
     elif jmodel == 'Damaged state 3':
         damagedElements = [49*6, 49*6+1, 49*6+2]
     elif jmodel == 'Damaged state 4':
-        damagedElements = [100*6]
+        damagedElements = [100*6+5]
     elif jmodel == 'Damaged state 5':
-        damagedElements = [100*6, 100*6+1]
+        damagedElements = [100*6+5, 100*6+4]
     elif jmodel == 'Damaged state 6':
-        damagedElements = [100*6, 100*6+1, 100*6+2]
+        damagedElements = [100*6+5, 100*6+4, 100*6+3]
 
 
     #  Define Geometry
@@ -117,7 +118,7 @@ def main(job):
     etype = quadrilaterals.Quad4()
     irule = quadrature.Gauss.inQuadrilateral(rule=3).info
 
-    for j in indices:
+    for i, j in enumerate(indices):
 
         #  Define element nodes
 
@@ -139,7 +140,7 @@ def main(job):
 
         #  Calculate stiffnes reduction
 
-        reduction = jdamage if j in damagedElements else 1
+        reduction = jdamage if i in damagedElements else 1
 
         #  Define material properties for each integration point
 
@@ -224,6 +225,13 @@ def main(job):
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
 
 
+    #  Extract degrees of freedom for output locations
+
+    columns = np.arange(5, nel_x+5, 10)[np.newaxis].T*(nel_y+1)
+    rows = np.tile(np.array([1, 3, 5]), len(columns)).reshape((len(columns), 3))
+    rows = (columns+rows).reshape((rows.size,))
+    odofs = np.sort(np.hstack((rows*2, rows*2+1)))
+
     #  Run analysis
 
     if janalysis == 'Modal':
@@ -236,9 +244,9 @@ def main(job):
         # Extract mode shapes at output locations
 
         labels = []
-        output = []
+        output = modal.modes[odofs, :]
 
-    else:
+    elif janalysis == 'Time history':
 
         dynamics = analysis.TransientDynamics(model1)
         dynamics.setTimePeriod(100)
@@ -248,6 +256,8 @@ def main(job):
 
         labels = []
         output = []
+
+
 
     print(modal.frequencies)
 
@@ -263,6 +273,7 @@ def main(job):
         
         plt.subplot('41'+n)
         plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
+        plt.axis('equal')
         
         plt.xlim(0, length)
         
@@ -278,7 +289,10 @@ def main(job):
                 clr = 'r'
                 width = 0.5
 
-            elements[i].deformed(scale=1e2, color=clr, lnwidth=width)
+            elements[i].deformed(scale=0, color=clr, lnwidth=width)
+
+        for lab in rows:
+            plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
     plt.tight_layout()
     plt.show()
