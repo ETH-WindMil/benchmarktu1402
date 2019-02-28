@@ -48,8 +48,12 @@ def main(job):
             [10, 0.0],
             [15, 0.5]])
 
-    janalysis = 'Modal'
+    janalysis = 'Time history'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
+    loadCase = '1'
+    alpha, beta = 1e-5, 1e-5
+    period = 100
+    increment = 0.1
     jname = 'Job-1'
 
 
@@ -236,6 +240,8 @@ def main(job):
 
     if janalysis == 'Modal':
 
+        # Submit modal analysis
+
         modal = analysis.Modal(model1)
         modal.setNumberOfEigenvalues(jsettings['modes'])
         modal.setNormalizationMethod(jsettings['normalization'])
@@ -246,61 +252,137 @@ def main(job):
         labels = []
         output = modal.modes[odofs, :]
 
+        #  Save results
+
+        syst.stdout.write('Writting output files ...\n')
+
+        np.savetxt(jname+'.dat', output, header=labels)
+
     elif janalysis == 'Time history':
 
-        dynamics = analysis.TransientDynamics(model1)
-        dynamics.setTimePeriod(100)
-        dynamics.setIncrementSize(0.01)
+        model1.setDampingCoefficients(alpha, beta)
+
+        # Select load case
+
+        if loadCase == '1':
+            nlabels = np.arange(nel_y+1, (nel_x+1)*(nel_y+1) ,nel_y+1)
+            loadCase = np.loadtxt('Load_case_1.dat', skiprows=1)
+            velocity, load = loadCase[0], loadCase[1]
+
+            for j, nlabel in enumerate(nlabels):
+
+                t1 = nodes[nlabels[j-1]].coords[0]/velocity
+                t2 = nodes[nlabels[j]].coords[0]/velocity
+
+                if j == 0:
+                    t1 = t2-1e-5
+
+                if j == nlabels.shape[0]-1:
+                    t3 = t2+1e-5
+                else:
+                    t3 = nodes[nlabels[j+1]].coords[0]/velocity
+
+                time = np.array([t1, t2, t3])
+                force = np.array([0, 1e3*load, 0])
+                amplitude = [np.array([time, force])]
+
+                model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
+
+        elif loadCase == '2':
+            nlabel = 63*(nel_y+1)-1
+
+            loadCase = np.loadtxt('Load_case_2.dat', skiprows=1)
+            time, force = loadCase[:, 0], loadCase[:, 1]
+            amplitude = [np.array([time, force])]
+
+            model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
+
+        elif loadCase == '3':
+            nlabel = 139*(nel_y+1)-1
+
+            loadCase = np.loadtxt('Load_case_3.dat', skiprows=1)
+            time, force = loadCase[:, 0], loadCase[:, 1]
+            amplitude = [np.array([time, force])]
+
+            model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
+
+
+        dynamics = analysis.Dynamics(model1)
+        dynamics.setTimePeriod(period)
+        dynamics.setIncrementSize(period)
+        dynamics.submit()
 
         # Extract time response at output locations
 
+        displacements = dynamics.modes[odofs, :].dot(dynamics.displacement).T
+        accelerations = dynamics.modes[odofs, :].dot(dynamics.acceleration).T
+
         labels = []
-        output = []
+
+        # Save results
+
+        syst.stdout.write('Writting output files ...\n')
+
+        np.savetxt(jname+'_displacements'+'.dat', displacements, header=labels)
+        np.savetxt(jname+'_accelerations'+'.dat', accelerations, header=labels)
 
 
+    nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
 
-    print(modal.frequencies)
 
-    #  Plot mode shapes
+    # #  Plot mode shapes
 
-    plt.figure(1)
+    # plt.figure(1)
 
-    for mode_no in range(4):
-        for item, mode in zip(list(model1.ndof2.keys()), modal.modes[:, mode_no]):
-            nodes[item[0]].dsp[item[1]] = mode
+    # for mode_no in range(4):
+    #     for item, mode in zip(list(model1.ndof2.keys()), modal.modes[:, mode_no]):
+    #         nodes[item[0]].dsp[item[1]] = mode
 
-        n = str(mode_no+1)
+    #     n = str(mode_no+1)
         
-        plt.subplot('41'+n)
-        plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
-        plt.axis('equal')
-        
-        plt.xlim(0, length)
-        
-        plt.xticks([], [])
-        plt.yticks([], [])
+    #     plt.subplot('41'+n)
+    #     plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
+    #     plt.axis('equal')
 
-        for i in range(len(elements)):
+    #     plt.xlim(0, length)
 
-            if elements[i].label in damagedElements:
-                clr = 'k'
-                width = 1
-            else:
-                clr = 'r'
-                width = 0.5
+    #     plt.xticks([], [])
+    #     plt.yticks([], [])
 
-            elements[i].deformed(scale=0, color=clr, lnwidth=width)
+    #     for i in range(len(elements)):
 
-        for lab in rows:
-            plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #         if elements[i].label in damagedElements:
+    #             clr = 'k'
+    #             width = 1
+    #         else:
+    #             clr = 'r'
+    #             width = 0.5
 
-    plt.tight_layout()
-    plt.show()
+    #         elements[i].deformed(scale=0, color=clr, lnwidth=width)
+
+    #     for lab in rows:
+    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+
+    #     for lab in [63*7-1, 139*7-1]:
+    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+
+    #     for lab in nlabel:
+    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
 
-    #  Save results
+    # plt.tight_layout()
+    # plt.show()
 
-    np.savetxt(jname+'.dat', output, header=labels)
+
+
+    # # Plot modal response
+
+    # plt.figure()
+    # plt.plot(dynamics.displacement[0, :])
+
+    # plt.tight_layout()
+    # plt.show()
+
 
 
 if __name__ == '__main__':
