@@ -16,8 +16,8 @@ class Modal:
 
     Parameters
     ----------
-    model: ...
-        ...
+    model: Model
+        The model to be analysed.
 
     Attributes
     ----------
@@ -163,13 +163,7 @@ class Modal:
         self.returnModeShapes = value
 
 
-    # Modal time-history analysis works only with the free degrees of freedom
-    # which should be accounted for in the solution
     def submit(self):
-
-        """
-        Submit the analysis.
-        """
 
         stiffness = model.Stiffness(self.model).getPartitionFF()
         mass = model.Mass(self.model).getPartitionFF()
@@ -214,9 +208,17 @@ class Modal:
 
 
 
-class TransientDynamics(object):
+class Dynamics(object):
 
     """
+    Class for dynamic analysis, to calculate the time response of a system
+    subjected to dynamic loads, using Newmark scheme.
+
+    Parameters
+    ----------
+    model: Model
+        The model to be analysed.
+
     Methods
     -------
     setTimePeriod(period)
@@ -228,15 +230,8 @@ class TransientDynamics(object):
     """
 
 
-    def __init__(self, model): # duration, step, method='linear'):
+    def __init__(self, model):
         self.model = model
-        # self.duration = duration
-        # self.step = step
-        # if method != 'constant' and method != 'linear':
-        #     raise TypeError('Invalid Newmark method')
-        # else:
-        #     self.method = method
-
         self.timePeriod = 1
         self.incrementSize = 0.1
 
@@ -305,8 +300,8 @@ class TransientDynamics(object):
         time = np.arange(0, period+step, step)
 
 
-        alpha, beta = self.model.alpha, self.model.beta
-        damping = alpha*1/(4*np.pi*frequencies)+beta*np.pi*frequencies
+        a, b = self.model.alpha, self.model.beta
+        damping = a*1/(4*np.pi*frequencies)+b*np.pi*frequencies
 
         dsp = np.zeros((len(frequencies), len(time)))
         vlc = np.zeros((len(frequencies), len(time)))
@@ -316,16 +311,14 @@ class TransientDynamics(object):
         C = np.diag(frequencies)*2*np.pi*2*damping
         M = np.eye(len(frequencies))
 
-        # { Construct modal force vector
+        #  Construct modal force vector
 
         loads = np.zeros((len(self.model.loads), len(time)))
 
-        for j, load in enumerate(self.model.loads):
+        for i, load in enumerate(self.model.loads):
             loads[i] = np.interp(time, load[0], load[1])
 
-        frc = model.T.dot(self.model.Sp).dot(loads)
-
-        # }
+        frc = modes.T.dot(self.model.Sp).dot(loads)
 
         efrc = -C.dot(vlc[:, 0])-K.dot(dsp[:, 0])
         acc[:, 0] = np.linalg.solve(M, frc[:, 0]+efrc)
@@ -350,94 +343,10 @@ class TransientDynamics(object):
             vlc[:, j+1] = c1*(dsp[:, j+1]-dsp[:, j])+c2*vlc[:, j]+c3*acc[:, j]
             acc[:, j+1] = c4*(dsp[:, j+1]-dsp[:, j])+c5*vlc[:, j]+c6*acc[:, j]
 
+        self.modes = modes
+        self.frequencies = frequencies
+
+        self.time = time
         self.displacement = dsp
         self.velocity = vlc
         self.acceleration = acc
-
-
-
-    # def analyze(self):
-
-    #     modalAnalysis = Modal(self.mesh, 4)
-    #     modalAnalysis.analyze()
-    #     frequencies = modalAnalysis.frequencies
-    #     modes = modalAnalysis.modes[list(self.mesh.fdof2.values()), :]
-
-    #     step = self.step
-    #     dmp = 0.01
-
-    #     if self.method is 'constant':
-    #         beta, gamma = 1/4, 1/2
-    #     elif self.method is 'linear':
-    #         beta, gamma = 1/6, 1/2
-
-    #     Tup = 1/frequencies[-1]
-
-    #     if step > 0.1*Tup:
-    #         step = 0.1*Tup
-
-    #     time_ = np.arange(0, self.duration+step, step)
-    #     m = len(frequencies)
-    #     t = len(time_)
-        
-    #     mdsp_k = np.zeros(m)
-    #     mvlc_k = np.zeros(m)
-
-    #     mdsp = np.zeros((m, t))
-    #     mvlc = np.zeros((m, t))
-    #     macl = np.zeros((m, t))
-
-    #     K = (np.diag(frequencies)*2*np.pi)**2
-    #     C = np.diag(frequencies)*2*np.pi*2*dmp
-    #     M = np.eye(m)
-
-    #     dsp = model._Displacement(self.mesh).ff()
-    #     vlc = model._Velocity(self.mesh).ff()
-
-    #     # for i, mode in enumerate(modes.T):
-    #     #     nom = mode.dot(modalAnalysis.mass.ff())
-    #     #     den = nom.dot(mode.T)
-    #     #     mdsp_k[i] = nom.dot(dsp)/den.toarray()
-    #     #     mvlc_k[i] = nom.dot(vlc)/den.toarray()
-
-
-    #     p = len(self.mesh.loads)
-    #     Sp = self.mesh.Sp
-    #     loads = np.zeros((p, t))
-
-    #     for i, load in enumerate(self.mesh.loads):
-    #         loads[i] = np.interp(time_, load[0], load[1])
-
-    #     mfrc = modes.T.dot(Sp).dot(loads)
-
-
-    #     macl_k = np.linalg.solve(M, mfrc[:, 0]-C.dot(mvlc_k)-K.dot(mdsp_k))
-    #     mdsp[:, 0], mvlc[:, 0], macl[:, 0] = mdsp_k, mvlc_k, macl_k
-
-    #     a1 = 1/(beta*step**2)*M+gamma/(beta*step)*C
-    #     a2 = 1/(beta*step)*M+(gamma/beta-1)*C
-    #     a3 = (1/(2*beta)-1)*M+step*(gamma/(2*beta)-1)*C
-
-    #     K += a1
-    #     Kinv = np.linalg.inv(K)
-
-    #     c1 = gamma/(beta*step)
-    #     c2 = 1-gamma/beta
-    #     c3 = step*(1-gamma/(2*beta))
-    #     c4 = 1/(beta*step**2)
-    #     c5 = -1/(beta*step)
-    #     c6 = -(1/(2*beta)-1)
-
-    #     for j in range(t-1):
-
-    #         efrc_l = mfrc[:, j+1]+a1.dot(mdsp_k)+a2.dot(mvlc_k)+a3.dot(macl_k)
-
-    #         mdsp_l = Kinv.dot(efrc_l)
-    #         mvlc_l = c1*(mdsp_l-mdsp_k)+c2*mvlc_k+c3*macl_k
-    #         macl_l = c4*(mdsp_l-mdsp_k)+c5*mvlc_k+c6*macl_k
-
-    #         mdsp[:, j+1] = mdsp_k = mdsp_l
-    #         mvlc[:, j+1] = mvlc_k = mvlc_l
-    #         macl[:, j+1] = macl_k = macl_l
-
-    #     return mdsp, mvlc, macl, time_
