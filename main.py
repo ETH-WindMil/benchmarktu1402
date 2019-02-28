@@ -1,4 +1,6 @@
 import os
+import sys
+
 import quadrature
 import quadrilaterals
 import analysis
@@ -254,7 +256,7 @@ def main(job):
 
         #  Save results
 
-        syst.stdout.write('Writting output files ...\n')
+        sys.stdout.write('Writting output files ...\n')
 
         np.savetxt(jname+'.dat', output, header=labels)
 
@@ -321,10 +323,10 @@ def main(job):
 
         # Save results
 
-        syst.stdout.write('Writting output files ...\n')
+        sys.stdout.write('Writting output files ...\n')
 
-        np.savetxt(jname+'_displacements'+'.dat', displacements, header=labels)
-        np.savetxt(jname+'_accelerations'+'.dat', accelerations, header=labels)
+        # np.savetxt(jname+'_displacements'+'.dat', displacements, header=labels)
+        # np.savetxt(jname+'_accelerations'+'.dat', accelerations, header=labels)
 
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
