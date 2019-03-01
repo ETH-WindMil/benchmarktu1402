@@ -18,45 +18,36 @@ def main(job):
 
     #  Read job object
 
-    # settings = job.getSettings()
-
-    # material = settings['material']
-    # boundaries = settings['boundaries']
-    # corrosion = settings['corrosion']
-    # temperature = settings['temperature']
-
     jmodel = 'Damaged state 6'
     jthickness = 0.1
-    jdamage = 0
+    jdamage = 0         # Degree of damage
 
     jmaterial = np.array([
-            [1.8e11, 0.3, 10],
-            [1.8e11, 0.3, 25]])
+            [1.8e11, 0.3, 10]]) # E, n, rho
 
     jboundary1 = np.array([
-            [1e15, 1e11, 20]])
+            [1e15, 1e11, 20]]) # kx, ky, temperature
 
     jboundary2 = np.array([
-            [1e15, 1e11, 20]])
+            [1e15, 1e11, 20]]) # kx, ky, temperature
 
     jboundary3 = np.array([
-            [1e15, 1e11, 20]])
+            [1e15, 1e11, 20]]) # kx, ky, temperature
 
     jwastage = np.array([
-            [0.1, 0.0],
-            [0.1, 0.5]])
+            [0.0, 0.5]]) # Wastage, x / length
 
     jtemperature = np.array([
-            [10, 0.0],
-            [15, 0.5]])
+            [10, 0.5]]) # temperature, x / length
 
     janalysis = 'Time history'
-    jsettings = {'modes': 5, 'normalization': 'Mass'}
-    loadCase = '1'
-    alpha, beta = 1e-5, 1e-5
-    period = 100
-    increment = 0.1
-    jname = 'Job-1'
+    # jsettings = {'modes': 5, 'normalization': 'Mass'}
+
+    loadCase = '1'              # 1, 2, 3
+    alpha, beta = 1e-5, 1e-5    # Rayleigh damping coefficients
+    period = 10                 # Simulation period
+    increment = 0.1             # Time increment
+    jname = 'Job-1'             # job name
 
 
     #  Define element labels of damaged areas
@@ -168,7 +159,6 @@ def main(job):
         elements.append(model.Element(enodes, etype, materials, thickness, irule))
 
 
-
     #  Initialize model
 
     model1 = model.Model(nodes, elements)
@@ -237,6 +227,20 @@ def main(job):
     rows = np.tile(np.array([1, 3, 5]), len(columns)).reshape((len(columns), 3))
     rows = (columns+rows).reshape((rows.size,))
     odofs = np.sort(np.hstack((rows*2, rows*2+1)))
+    ocoords = np.array([(nodes[j].coords[0], nodes[j].coords[1]) for j in rows])
+
+    # Save labels and coordinates of measurement nodes
+
+    output = np.vstack((rows, ocoords.T)).T
+    labels, frmt = 'label  x  y', ['%d', '%10.5f', '%10.5f']
+    np.savetxt('Output_nodes.dat', output, fmt=frmt, header=labels)
+
+    # Save labels of measurement degrees of freedom
+
+    xlabels = np.array([str(item)+'x' for item in row])
+    ylabels = np.array([str(item)+'y' for item in row])
+    labels = np.vstack((xlabels, ylabels)).T.flatten()
+    labels = '   '.join(label for label in labels)
 
     #  Run analysis
 
@@ -251,13 +255,11 @@ def main(job):
 
         # Extract mode shapes at output locations
 
-        labels = []
         output = modal.modes[odofs, :]
 
         #  Save results
 
         sys.stdout.write('Writting output files ...\n')
-
         np.savetxt(jname+'.dat', output, header=labels)
 
     elif janalysis == 'Time history':
@@ -314,19 +316,17 @@ def main(job):
         dynamics.setIncrementSize(period)
         dynamics.submit()
 
-        # Extract time response at output locations
+        # Extract time response at output degrees of freedom
 
         displacements = dynamics.modes[odofs, :].dot(dynamics.displacement).T
         accelerations = dynamics.modes[odofs, :].dot(dynamics.acceleration).T
-
-        labels = []
 
         # Save results
 
         sys.stdout.write('Writting output files ...\n')
 
-        # np.savetxt(jname+'_displacements'+'.dat', displacements, header=labels)
-        # np.savetxt(jname+'_accelerations'+'.dat', accelerations, header=labels)
+        np.savetxt(jname+'_displacements'+'.dat', displacements[:10, :], header=labels)
+        np.savetxt(jname+'_accelerations'+'.dat', accelerations[:10, :], header=labels)
 
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
