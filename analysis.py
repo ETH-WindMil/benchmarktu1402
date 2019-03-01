@@ -192,9 +192,9 @@ class Modal:
 
             # check if vectors has more than one columns.
             # If not, vectors.shape[1] will raise an error
-            self.modes = np.zeros((len(self.model.ndof2), vectors.shape[1]))
-            self.modes[list(self.model.fdof2.values()), :] = vectors
-            self.modes[list(self.model.rdof2.values()), :] = 0
+            self.modes = np.zeros((len(self.model.ndof), vectors.shape[1]))
+            self.modes[list(self.model.fdof.values()), :] = vectors
+            self.modes[list(self.model.rdof.values()), :] = 0
         else:
             self.modes = None
             if np.any(values<0):
