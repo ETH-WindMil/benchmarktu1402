@@ -20,7 +20,7 @@ def main(job):
 
     jmodel = 'Damaged state 6'
     jthickness = 0.1
-    jdamage = 0         # Degree of damage
+    jdamage = 0     # Percentage of stiffness reduction in the damaged area
 
     jmaterial = np.array([
             [1.8e11, 0.3, 10]]) # E, n, rho
@@ -41,10 +41,11 @@ def main(job):
             [10, 0.5]]) # temperature, x / length
 
     janalysis = 'Time history'
-    # jsettings = {'modes': 5, 'normalization': 'Mass'}
+    # janalysis = 'Modal'
+    jsettings = {'modes': 5, 'normalization': 'Mass'}
 
     loadCase = '1'              # 1, 2, 3
-    alpha, beta = 1e-5, 1e-5    # Rayleigh damping coefficients
+    alpha, beta = 1e-1, 1e-1    # Rayleigh damping coefficients
     period = 10                 # Simulation period
     increment = 0.1             # Time increment
     jname = 'Job-1'             # job name
@@ -237,8 +238,8 @@ def main(job):
 
     # Save labels of measurement degrees of freedom
 
-    xlabels = np.array([str(item)+'x' for item in row])
-    ylabels = np.array([str(item)+'y' for item in row])
+    xlabels = np.array([str(item)+'x' for item in rows])
+    ylabels = np.array([str(item)+'y' for item in rows])
     labels = np.vstack((xlabels, ylabels)).T.flatten()
     labels = '   '.join(label for label in labels)
 
@@ -325,24 +326,24 @@ def main(job):
 
         sys.stdout.write('Writting output files ...\n')
 
-        np.savetxt(jname+'_displacements'+'.dat', displacements[:10, :], header=labels)
-        np.savetxt(jname+'_accelerations'+'.dat', accelerations[:10, :], header=labels)
+        np.savetxt(jname+'_displacements'+'.dat', displacements, header=labels)
+        np.savetxt(jname+'_accelerations'+'.dat', accelerations, header=labels)
 
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
 
 
-    # #  Plot mode shapes
+    #  Plot mode shapes
 
-    # plt.figure(1)
+    # plt.figure(4)
 
-    # for mode_no in range(4):
-    #     for item, mode in zip(list(model1.ndof2.keys()), modal.modes[:, mode_no]):
+    # for mode_no in range(1):
+    #     for item, mode in zip(list(model1.ndof.keys()), modal.modes[:, mode_no]):
     #         nodes[item[0]].dsp[item[1]] = mode
 
     #     n = str(mode_no+1)
         
-    #     plt.subplot('41'+n)
+    #     # plt.subplot('41'+n)
     #     plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
     #     plt.axis('equal')
 
@@ -362,14 +363,16 @@ def main(job):
 
     #         elements[i].deformed(scale=0, color=clr, lnwidth=width)
 
-    #     for lab in rows:
-    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #         elements[i].plotLabel()
 
-    #     for lab in [63*7-1, 139*7-1]:
-    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     # for lab in rows:
+    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
-    #     for lab in nlabel:
-    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     # for lab in [63*7-1, 139*7-1]:
+    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+
+    #     # for lab in nlabel:
+    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
 
     # plt.tight_layout()
