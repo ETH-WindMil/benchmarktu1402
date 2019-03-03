@@ -9,7 +9,7 @@ relying on the Value of Information.
 
 - Pull down a copy of the code by cloning or downloading the repository
 - Open a terminal and change the current directory to the benchmark folder
-- Run the benchmark by typing
+- Run the benchmark through the terminal by typing
 ```
 python main.py
 ```
