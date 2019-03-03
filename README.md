@@ -17,4 +17,4 @@ python main.py
 
 - The backend and frontend are currently not connected
 - The code can be configured and executed through main.py script
-- All python dependencies are included in Anaconda installations
+- All python dependencies are included in [Anaconda](https://www.anaconda.com/distribution/) installations
