@@ -9,7 +9,12 @@ relying on the Value of Information.
 
 - Pull down a copy of the code by cloning or downloading the repository
 - Open a terminal and change the current directory to the benchmark folder
-- To run the benchmark type
+- Run the benchmark by typing
 ```
 python main.py
 ```
+## Notes
+
+- The backend and frontend are currently not connected
+- The code can be configured and executed through main.py script
+- All python dependencies are included in Anaconda installations
