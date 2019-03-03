@@ -11,5 +11,5 @@ relying on the Value of Information.
 - Open a terminal and change the current directory to the benchmark folder
 - To run the benchmark type
 ```
-npm run static
+python main.py
 ```
