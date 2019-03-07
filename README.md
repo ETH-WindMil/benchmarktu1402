@@ -66,8 +66,8 @@ Depending on the type of analysis, the following files are further generated for
           <td> Contains the acceleration time history at output locations </td>
       </tr>
       <tr>
-          <td> <i>Job_name</i>_strains.dat </td>
-          <td> Contains the srain time history at output locations </td>
+          <td> <strike><i>Job_name</i>_strains.dat</strike> </td>
+          <td> <strike>Contains the srain time history at output locations</strike> </td>
       </tr>
   </tbody>
 </table>
