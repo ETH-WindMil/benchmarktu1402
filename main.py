@@ -40,8 +40,8 @@ def main(job):
     jtemperature = np.array([
             [10, 0.5]]) # temperature, x / length
 
-    janalysis = 'Time history'
-    # janalysis = 'Modal'
+    # janalysis = 'Time history'
+    janalysis = 'Modal'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
 
     loadCase = '1'              # 1, 2, 3
@@ -144,10 +144,11 @@ def main(job):
 
         E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])*reduction
         n = np.interp(xi, jmaterial[:, 2], jmaterial[:, 1])
+        rho = np.interp(xi, jmaterial[:, 2], jmaterial[:, 2])
         materials = []
 
         for k in range(len(xi)):
-            materials.append(material.LinearElastic(E[k], n[k], density))
+            materials.append(material.LinearElastic(E[k], n[k], rho))
 
         #  Interpolate thickness at gauss points
 
@@ -262,8 +263,8 @@ def main(job):
         #  Save results
 
         sys.stdout.write('Writting output files ...\n')
-        np.savetxt(jname+'_frequencies'+'.dat', frequencies)
-        np.savetxt(jname+'_modes'+'.dat', modes, header=labels)
+        np.savetxt(jname+'_frequencies.dat', frequencies)
+        np.savetxt(jname+'_modes.dat', modes, header=labels)
 
     elif janalysis == 'Time history':
 
@@ -313,6 +314,7 @@ def main(job):
 
             model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
 
+        # Define dynamic analysis
 
         dynamics = analysis.Dynamics(model1)
         dynamics.setTimePeriod(period)
@@ -328,11 +330,35 @@ def main(job):
 
         sys.stdout.write('Writting output files ...\n')
 
-        np.savetxt(jname+'_displacements'+'.dat', displacements, header=labels)
-        np.savetxt(jname+'_accelerations'+'.dat', accelerations, header=labels)
+        np.savetxt(jname+'_displacements.dat', displacements, header=labels)
+        np.savetxt(jname+'_accelerations.dat', accelerations, header=labels)
+
+    elif janalysis == 'Static':
+
+        nlabel = 63*(nel_y+1)-1
+
+        loadCase = np.loadtxt('Load_case_2.dat', skiprows=1)
+        time, force = loadCase[0, 0], loadCase[1, 1]
+        amplitude = [np.array([time, force])]
+        model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
+
+        # Define static analysis
+
+        static = analysis.Static(model1)
+        static.submit()
+
+        # Extract displacements at output degrees of freedom
+
+        displacements = static.displacements[odofs, :]
+
+        # Save results
+
+        sys.stdout.write('Writting output files ...\n')
+        np.savetxt(jname+'_displacements.dat', header=labels)
 
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
+
 
 
     #  Plot mode shapes
@@ -340,13 +366,17 @@ def main(job):
     # plt.figure(4)
 
     # for mode_no in range(1):
-    #     for item, mode in zip(list(model1.ndof.keys()), modal.modes[:, mode_no]):
+    #     # for item, mode in zip(list(model1.ndof.keys()), modal.modes[:, mode_no]):
+    #     #     nodes[item[0]].dsp[item[1]] = mode
+
+    #     for item, mode in zip(list(model1.ndof.keys()), static.displacement):
     #         nodes[item[0]].dsp[item[1]] = mode
 
     #     n = str(mode_no+1)
         
     #     # plt.subplot('41'+n)
-    #     plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
+    #     # plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
+    #     plt.title('Mode '+n+' - '+'sjdfnsfdns Hz', fontsize=11)
     #     plt.axis('equal')
 
     #     plt.xlim(0, length)
@@ -363,18 +393,18 @@ def main(job):
     #             clr = 'r'
     #             width = 0.5
 
-    #         elements[i].deformed(scale=0, color=clr, lnwidth=width)
+    #         elements[i].deformed(scale=1e6, color=clr, lnwidth=width)
 
-    #         elements[i].plotLabel()
+    #         # elements[i].plotLabel()
 
-    #     # for lab in rows:
-    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     for lab in rows:
+    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
-    #     # for lab in [63*7-1, 139*7-1]:
-    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     for lab in [63*7-1, 139*7-1]:
+    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
-    #     # for lab in nlabel:
-    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     for lab in nlabel:
+    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
 
     # plt.tight_layout()
