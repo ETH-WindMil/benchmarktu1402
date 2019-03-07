@@ -13,6 +13,13 @@ relying on the Value of Information.
 ```
 python main.py
 ```
+## Results
+
+Upon running the analysis, a file named "Output_nodes.dat" is generated, which contains the information
+of output nodes and consists of three columns:
+- Column 1 stores the labels of output nodes
+- Columns 2-3 store the corresponding coordinates $x$ and $y$
+
 ## Notes
 
 - The backend and frontend are currently not connected
