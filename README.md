@@ -29,7 +29,7 @@ job named *Job_name*:
 
 **Modal**
 | File name                    | Description                                                 |
-| ---------------------------- | ----------------------------------------------------------- |
+|----------------------------|----------------------------------------------------------- |
 | *Job_name*_frequencies.dat   |  Contains the frequencies \[Hz\]                            |
 | *Job_name*_modes.dat         |  Contains the corresponding mode shapes at output locations |
  
