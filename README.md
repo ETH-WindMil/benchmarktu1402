@@ -32,7 +32,7 @@ Depending on the type of analysis, the following files are further generated for
   <thead>
       <tr>
         <th align="left", width="200">File name</th>
-        <th align="left", width="350">Description</th>
+        <th align="left", width="450">Description</th>
       </tr>
   </thead>
   <body>
@@ -52,8 +52,8 @@ Depending on the type of analysis, the following files are further generated for
 <table>
   <thead>
       <tr>
-        <th align="left", width="20%">File name</th>
-        <th align="left", width="35%">Description</th>
+        <th align="left", width="200%">File name</th>
+        <th align="left", width="450%">Description</th>
       </tr>
   </thead>
   <body>
