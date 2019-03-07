@@ -32,7 +32,7 @@ Depending on the type of analysis, the following files are further generated for
   <thead>
       <tr>
         <th align="left", width="200">File name</th>
-        <th align="left", width="450">Description</th>
+        <th align="left", width="500">Description</th>
       </tr>
   </thead>
   <body>
