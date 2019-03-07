@@ -25,9 +25,11 @@ of output nodes and consisting of three columns:
 - Columns 2-3 store the corresponding nodal coordinates
 
 Depending on the type of analysis, Modal or Dynamic, the following files are further generated:
+
 - Modal 
   - *Job_name*_frequencies.dat
   - *Job_name*_modes.dat
+ 
 - Dynamic
   - *Job_name*_displacements.dat
   - *Job_name*_accelerations.dat
