@@ -24,6 +24,7 @@ of output nodes and consisting of three columns:
 - Column 1 stores the labels of output nodes
 - Columns 2-3 store the corresponding nodal coordinates
 
+<br>
 Depending on the type of analysis, the following files are further generated for each job named *Job_name*:
 
 **Modal Analysis**
@@ -31,7 +32,7 @@ Depending on the type of analysis, the following files are further generated for
 <table>
   <thead>
       <tr>
-        <th align="left", width="200">File name</th>
+        <th align="left", width="240">File name</th>
         <th align="left", width="500">Description</th>
       </tr>
   </thead>
@@ -46,14 +47,14 @@ Depending on the type of analysis, the following files are further generated for
       </tr>
   </tbody>
 </table>
- 
+
 **Dynamic Analysis**
 
 <table>
   <thead>
       <tr>
         <th align="left", width="200">File name</th>
-        <th align="left", width="450">Description</th>
+        <th align="left", width="500">Description</th>
       </tr>
   </thead>
   <body>
