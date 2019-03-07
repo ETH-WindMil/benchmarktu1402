@@ -48,15 +48,30 @@ job named *Job_name*:
   </tbody>
 </table>
  
-| File name                    | Description                                                 |
-|----------------------------|----------------------------------------------------------- |
-| *Job_name*_frequencies.dat   |  Contains the frequencies \[Hz\]                            |
-| *Job_name*_modes.dat         |  Contains the corresponding mode shapes at output locations |
- 
 **Dynamic**
-- *Job_name*_displacements.dat    Contains the displacement time history at output locations
-- *Job_name*_accelerations.dat    Contains the acceleration time history at output locations
-- *Job_name*_strains.dat          Contains the strain time history at output locations
+
+<table>
+  <thead>
+      <tr>
+        <th align="left", width="20%">File name</th>
+        <th align="left", width="65%">Description</th>
+      </tr>
+  </thead>
+  <body>
+      <tr>
+          <td> <i>Job_name</i>_displacements.dat </td>
+          <td> Contains the displacement time history at output locations </td>
+      </tr>
+      <tr>
+          <td> <i>Job_name</i>_accelerations.dat </td>
+          <td> Contains the acceleration time history at output locations </td>
+      </tr>
+      <tr>
+          <td> <i>Job_name</i>_strains.dat </td>
+          <td> Contains the srain time history at output locations </td>
+      </tr>
+  </tbody>
+</table>
 
 ## Notes
 
