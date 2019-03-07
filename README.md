@@ -13,12 +13,23 @@ relying on the Value of Information.
 ```
 python main.py
 ```
+
+## Analysis
+
+
 ## Results
 
-Upon running the analysis, a file named "Output_nodes.dat" is generated, which contains the information
-of output nodes and consists of three columns:
+Upon running the analysis, a file named "Output_nodes.dat" is firstly generated, containing the information
+of output nodes and consisting of three columns:
 - Column 1 stores the labels of output nodes
-- Columns 2-3 store the corresponding coordinates $x$ and $y$
+- Columns 2-3 store the corresponding nodal coordinates
+
+Depending on the type of analysis, Modal or Dynamic, the following files are further generated:
+- Modal 
+- Dynamic
+  - File 1
+  - File 2
+  - File 3
 
 ## Notes
 
