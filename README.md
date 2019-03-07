@@ -41,7 +41,7 @@ Depending on the type of analysis, the following files are further generated for
   <body>
       <tr>
           <td> <i>Job_name</i>_frequencies.dat </td>
-          <td> Contains the frequencies [Hz] </td>
+          <td> Contains the system natural frequencies </td>
       </tr>
       <tr>
           <td> <i>Job_name</i>_modes.dat </td>
