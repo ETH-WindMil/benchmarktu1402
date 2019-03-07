@@ -14,7 +14,8 @@ relying on the Value of Information.
 python main.py
 ```
 
-## Analysis
+## Documentation
+
 
 
 ## Results
@@ -28,6 +29,7 @@ Depending on the type of analysis, the following files are further generated for
 
 **Modal Analysis**
 
+<div style="margin-left:15px">
 <table>
   <thead>
       <tr>
@@ -46,6 +48,7 @@ Depending on the type of analysis, the following files are further generated for
       </tr>
   </tbody>
 </table>
+</div>
 
 **Dynamic Analysis**
 
@@ -72,8 +75,17 @@ Depending on the type of analysis, the following files are further generated for
   </tbody>
 </table>
 
+## How to Cite
+
+Tatsis, K. Chatzi, E. (2019) "A numerical benchmark for system identification under operational and environmental variability", Proceedings of the 7th International Operational Modal Analysis Conference (IOMAC).
+
+## Found a Bug?
+
+If you think you've found a bug, go ahead and create a new [GitHub issue](https://help.github.com/en/articles/creating-an-issue). Be sure to include as much information as possible so that we can reproduce the bug.
+
 ## Notes
 
 - The backend and frontend are currently not connected
+- Extraction of strain time history is not yet available
 - The code can be configured and executed through main.py script
 - All python dependencies are included in [Anaconda](https://www.anaconda.com/distribution/) installations
