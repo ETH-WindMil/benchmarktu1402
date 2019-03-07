@@ -28,13 +28,13 @@ Depending on the type of analysis, Modal or Dynamic, the following files are fur
 job named *Job_name*:
 
 - Modal 
-  - *Job_name*_frequencies.dat      Contains the frequencies \[Hz\]
-  - *Job_name*_modes.dat            Contains the corresponding mode shapes at output locations
+  - *Job_name*_frequencies.dat<\pre>      Contains the frequencies \[Hz\]<pre>
+  - *Job_name*_modes.dat<\pre>            Contains the corresponding mode shapes at output locations<pre>
  
 - Dynamic
-  - *Job_name*_displacements.dat    Contains the displacement time history at output locations
-  - *Job_name*_accelerations.dat    Contains the acceleration time history at output locations
-  - *Job_name*_strains.dat          Contains the strain time history at output locations
+  - *Job_name*_displacements.dat<\pre>    Contains the displacement time history at output locations<pre>
+  - *Job_name*_accelerations.dat<\pre>    Contains the acceleration time history at output locations<pre>
+  - *Job_name*_strains.dat<\pre>          Contains the strain time history at output locations<pre>
 
 ## Notes
 
