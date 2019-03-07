@@ -27,13 +27,13 @@ of output nodes and consisting of three columns:
 Depending on the type of analysis, Modal or Dynamic, the following files are further generated:
 
 - Modal 
-  - *Job_name*_frequencies.dat
-  - *Job_name*_modes.dat
+  - *Job_name*_frequencies.dat      Contains the frequencies \[Hz\]
+  - *Job_name*_modes.dat            Contains the corresponding mode shapes at output locations
  
 - Dynamic
-  - *Job_name*_displacements.dat
-  - *Job_name*_accelerations.dat
-  - *Job_name*_strains.dat
+  - *Job_name*_displacements.dat    Contains the displacement time history at output locations
+  - *Job_name*_accelerations.dat    Contains the acceleration time history at output locations
+  - *Job_name*_strains.dat          Contains the strain time history at output locations
 
 ## Notes
 
