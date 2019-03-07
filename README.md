@@ -26,10 +26,12 @@ of output nodes and consisting of three columns:
 
 Depending on the type of analysis, Modal or Dynamic, the following files are further generated:
 - Modal 
+  - *Job_name*_frequencies.dat
+  - *Job_name*_modes.dat
 - Dynamic
-  - File 1
-  - File 2
-  - File 3
+  - *Job_name*_displacements.dat
+  - *Job_name*_accelerations.dat
+  - *Job_name*_strains.dat
 
 ## Notes
 
