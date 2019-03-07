@@ -38,12 +38,12 @@ job named *Job_name*:
   </thead>
   <body>
       <tr>
-          <td>*Job_name*_frequencies.dat</td>
-          <td>Contains the frequencies [Hz]</td>
+          <td> <i>Job_name</i>_frequencies.dat </td>
+          <td> Contains the frequencies [Hz] </td>
       </tr>
       <tr>
-          <td>*Job_name*_modes.dat</td>
-          <td>Contains the corresponding mode shapes at output locations</td>
+          <td> <i>Job_name</i>_modes.dat </td>
+          <td> Contains the corresponding mode shapes at output locations </td>
       </tr>
   </tbody>
 </table>
