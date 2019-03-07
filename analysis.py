@@ -1,11 +1,51 @@
-# -*- coding: utf-8 -*-
-# Author: Konstantinos
-
 from scipy.sparse import linalg
 import scipy.sparse as sps
 import numpy as np
 import scipy as sp
 import model
+
+
+class Static:
+
+    """
+    Class for linear static analysis.
+
+    Parameters
+    ----------
+    model: Model
+        The model to be analysed.
+
+    Methods
+    -------
+    submit()
+        Submit analysis.
+    """
+
+    def __init__(self, model):
+        self.model = model
+
+    def submit(self):
+
+        self.stiffness = model.Stiffness(self.model)
+
+        Kff = self.stiffness.getPartitionFF()
+        Kfr = self.stiffness.getPartitionFR()
+        Krf = self.stiffness.getPartitionRF()
+        Krr = self.stiffness.getPartitionRR()
+
+        ndof = list(self.model.ndof.values())
+        fdof = list(self.model.fdof.values())
+        rdof = list(self.model.rdof.values())
+
+        loads = np.array([load[1] for load in self.model.loads])
+        Ff = self.model.Sp.dot(loads)
+        Ur = np.zeros(len(rdof))
+        Uf = sps.linalg.inv(Kff).dot(Ff-Kfr.dot(Ur))
+
+        self.displacement = np.zeros(len(ndof))
+        self.displacement[rdof] = Ur
+        self.displacement[fdof] = Uf
+
 
 
 class Modal:
