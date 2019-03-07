@@ -256,12 +256,14 @@ def main(job):
 
         # Extract mode shapes at output locations
 
-        output = modal.modes[odofs, :]
+        frequencies = modal.frequencies
+        modes = modal.modes[odofs, :]
 
         #  Save results
 
         sys.stdout.write('Writting output files ...\n')
-        np.savetxt(jname+'.dat', output, header=labels)
+        np.savetxt(jname+'_frequencies'+'.dat', frequencies)
+        np.savetxt(jname+'_modes'+'.dat', modes, header=labels)
 
     elif janalysis == 'Time history':
 
