@@ -28,6 +28,22 @@ Depending on the type of analysis, Modal or Dynamic, the following files are fur
 job named *Job_name*:
 
 **Modal**
+
+<table>
+  <thead>
+      <tr>
+        <th width="45%">File name</th>
+        <th width="45%">Description</th>
+      </tr>
+  </thead>
+  <body>
+      <tr>
+          <td>*Job_name*_frequencies.dat</td>
+          <td>Contains the frequencies \[Hz\]  </td>
+      </tr>
+  </tbody>
+</table>
+ 
 | File name                    | Description                                                 |
 |----------------------------|----------------------------------------------------------- |
 | *Job_name*_frequencies.dat   |  Contains the frequencies \[Hz\]                            |
