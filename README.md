@@ -24,9 +24,7 @@ of output nodes and consisting of three columns:
 - Column 1 stores the labels of output nodes
 - Columns 2-3 store the corresponding nodal coordinates
 
-<br>
 Depending on the type of analysis, the following files are further generated for each job named *Job_name*:
-<br>
 
 **Modal Analysis**
 
