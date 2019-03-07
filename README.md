@@ -16,7 +16,7 @@ python main.py
 
 ## Documentation
 
-A description of the problem set-up, the modelling assumptions and the workflow to be followed in the Graphical User Interface (GUI) is documented in the corresponding [IOMAC paper](https://github.com/ETH-WindMil/benchmarktu1402/blob/master/IOMAC_2019.pdf) which serves as documentation.
+A description of the problem set-up, the modelling assumptions and the workflow to be followed in the Graphical User Interface (GUI) is available in the corresponding [IOMAC paper](https://github.com/ETH-WindMil/benchmarktu1402/blob/master/IOMAC_2019.pdf) which serves as documentation.
 
 
 ## Results
