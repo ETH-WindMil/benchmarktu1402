@@ -32,7 +32,7 @@ job named *Job_name*:
 <table>
   <thead>
       <tr>
-        <th width="45%">File name</th>
+        <th align="right", width="45%">File name</th>
         <th width="45%">Description</th>
       </tr>
   </thead>
