@@ -27,13 +27,13 @@ of output nodes and consisting of three columns:
 Depending on the type of analysis, Modal or Dynamic, the following files are further generated for each 
 job named *Job_name*:
 
-**Modal**
+**Modal Analysis**
 
 <table>
   <thead>
       <tr>
         <th align="left", width="20%">File name</th>
-        <th align="left", width="65%">Description</th>
+        <th align="left", width="50%">Description</th>
       </tr>
   </thead>
   <body>
@@ -48,13 +48,13 @@ job named *Job_name*:
   </tbody>
 </table>
  
-**Dynamic**
+**Dynamic Analysis**
 
 <table>
   <thead>
       <tr>
         <th align="left", width="20%">File name</th>
-        <th align="left", width="65%">Description</th>
+        <th align="left", width="50%">Description</th>
       </tr>
   </thead>
   <body>
