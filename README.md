@@ -24,7 +24,8 @@ of output nodes and consisting of three columns:
 - Column 1 stores the labels of output nodes
 - Columns 2-3 store the corresponding nodal coordinates
 
-Depending on the type of analysis, Modal or Dynamic, the following files are further generated:
+Depending on the type of analysis, Modal or Dynamic, the following files are further generated for each 
+job named *Job_name*:
 
 - Modal 
   - *Job_name*_frequencies.dat      Contains the frequencies \[Hz\]
