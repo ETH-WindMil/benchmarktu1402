@@ -23,7 +23,7 @@ def main(job):
     jdamage = 0     # Percentage of stiffness reduction in the damaged area
 
     jmaterial = np.array([
-            [1.8e11, 0.3, 10]]) # E, n, rho
+            [1.8e11, 0.3, 10]]) # E, n, temperature
 
     jboundary1 = np.array([
             [1e15, 1e11, 20]]) # kx, ky, temperature
@@ -144,11 +144,10 @@ def main(job):
 
         E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])*reduction
         n = np.interp(xi, jmaterial[:, 2], jmaterial[:, 1])
-        rho = np.interp(xi, jmaterial[:, 2], jmaterial[:, 2])
         materials = []
 
         for k in range(len(xi)):
-            materials.append(material.LinearElastic(E[k], n[k], rho))
+            materials.append(material.LinearElastic(E[k], n[k], density))
 
         #  Interpolate thickness at gauss points
 
