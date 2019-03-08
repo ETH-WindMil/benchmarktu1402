@@ -30,7 +30,7 @@ Depending on the type of analysis, the following files are further generated for
 
 **Modal Analysis**
 
-<div style="margin-left:15px">
+<div style="margin-left:55px">
 <table>
   <thead>
       <tr>
