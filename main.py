@@ -84,7 +84,7 @@ def main(job):
     nel_y = 6                   # Number of elements in y-axis
 
     el_size_x = length/nel_x    # Element size in x-direction
-    el_size_y = length/nel_y    # Element size in y-direction
+    el_size_y = height_start/nel_y    # Element size in y-direction
 
     points_x = np.arange(0, length*(1+1/nel_x)-1e-10, length/nel_x)
     counter = it.count(0)
