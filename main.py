@@ -41,7 +41,7 @@ def main(job):
             [10, 0.5]]) # temperature, x / length
 
     # janalysis = 'Time history'
-    janalysis = 'Modal'
+    janalysis = 'Static'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
 
     loadCase = '1'              # 1, 2, 3
@@ -75,10 +75,10 @@ def main(job):
     density = 2000              # Material density
 
     height_start = 0.60         # Dimension in y-axis
-    height_end = 0.60
+    height_end = 0.height_start
 
     width_start = 0.1           # Dimension in z-axis
-    width_end = 0.1
+    width_end = width_start
 
     nel_x = 200                 # Number of elements in x-axis
     nel_y = 6                   # Number of elements in y-axis
@@ -348,12 +348,12 @@ def main(job):
 
         # Extract displacements at output degrees of freedom
 
-        displacements = static.displacements[odofs, :]
+        displacements = static.displacement[odofs][np.newaxis]
 
         # Save results
 
         sys.stdout.write('Writting output files ...\n')
-        np.savetxt(jname+'_displacements.dat', header=labels)
+        np.savetxt(jname+'_displacements.dat', displacements, header=labels)
 
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
