@@ -41,7 +41,7 @@ def main(job):
             [10, 0.5]]) # temperature, x / length
 
     # janalysis = 'Time history'
-    janalysis = 'Static'
+    janalysis = 'Modal'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
 
     loadCase = '1'              # 1, 2, 3
@@ -75,7 +75,7 @@ def main(job):
     density = 2000              # Material density
 
     height_start = 0.60         # Dimension in y-axis
-    height_end = 0.height_start
+    height_end = height_start
 
     width_start = 0.1           # Dimension in z-axis
     width_end = width_start
