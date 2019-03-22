@@ -1,6 +1,6 @@
 """
-Provides the implementation of isoparametric quadrilateral plane-stress and 
-plane-strain elements.
+Provides the implementation of isoparametric quadrilateral elements for 
+plane-stress and plane-strain problems.
 """
 
 import abc
@@ -35,7 +35,7 @@ class Quadrilateral(abc.ABC):
         Parameters
         ----------
         ncoords: ndarray
-            The nodal coordinates (n x 2), where n is he number of nodes.
+            The nodal coordinates (n x 2), where n is the number of nodes.
         cmatrix: ndarray
             The material constitutive matrix at the integration points.
         thickness: ndarray
@@ -286,7 +286,7 @@ class Quad4(Quadrilateral):
     >>> mdensity = 500*np.ones(4)
     >>> thickness = 0.2*np.ones(4)
     >>> ncoords = np.array([[2, 1], [0, 1], [0, 0], [2, 0]])
-    >>> irule = np.aarray([
+    >>> irule = np.array([
             [ 0.57735027,  0.57735027,  1.0,  1.0],
             [-0.57735027,  0.57735027,  1.0,  1.0],
             [-0.57735027, -0.57735027,  1.0,  1.0],
