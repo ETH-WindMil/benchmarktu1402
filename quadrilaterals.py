@@ -87,7 +87,7 @@ class Quadrilateral(abc.ABC):
         mass = np.zeros((self.degrees, self.degrees))
 
         for density, t, (r1, r2, w1, w2) in zip(mdensity, thickness, irule):
-            N = self.getShapeFunctions(r1, r2)
+            N = self.getShapeFunctionsMatrix(r1, r2)
             jacobian = self.getJacobian(ncoords, r1, r2)
             mass += w1*w2*N.T.dot(N)*density*np.linalg.det(jacobian)*t
 
@@ -127,12 +127,46 @@ class Quadrilateral(abc.ABC):
 
         for C, r, t, (r1, r2, w1, w2) in zip(cmatrix, mdensity, thickness, irule):
             B, jacobian = self.getDeformationMatrix(ncoords, r1, r2)
-            N = self.getShapeFunctions(r1, r2)
+            N = self.getShapeFunctionsMatrix(r1, r2)
 
             stiffness += w1*w2*B.T.dot(C).dot(B)*np.linalg.det(jacobian)*t
             mass += w1*w2*N.T.dot(N)*r*np.linalg.det(jacobian)*t
 
         return stiffness, mass
+
+
+
+    def getStrain(self, ncoords, displacements, ipoints, r1, r2):
+
+        """
+        Get the strain vector by extrapolating from the values calculated
+        at the integration points.
+
+        Parameters
+        ----------
+        ncoords: ndarray
+            The nodal coordinates (n x 2), where n is the number of nodes.
+        displacements: ndarray
+            The displacement vector (2n x 1), where n is the number of nodes.
+        ipoints: ndarray
+            The coordinates of integration points (p x 2), where p is the 
+            number of points.
+        r1, r2: float
+            The quadrilateral natural coordinates, ranging from -1 to 1, at 
+            which the strain vector is returned.
+        """
+
+        istrain = np.zeros((ipoints.shape[0], 3))
+
+        for j, (px, py) in enumerate(ipoints):
+            B, J = self.getDeformationMatrix(ncoords, px, py)
+            istrain[j, :] = B.dot(displacements)
+
+        sfactor = np.max(ipoints[:, 0])
+        strain = self.getShapeFunctions(r1/sfactor, r2/sfactor).dot(istrain)
+
+        return strain
+
 
 
     def getDeformationMatrix(self, ncoords, r1, r2):
@@ -195,53 +229,8 @@ class Quadrilateral(abc.ABC):
         return jacobian
 
 
-
-class Quad4(Quadrilateral):
-
-    """
-    Class implementing the four-node quadrilateral element for plane-stress 
-    and plane-strain problems.
-
-    Attributes
-    ----------
-    degrees: int
-        The number of degrees of freedom.
-
-    Methods
-    -------
-    getShapeFunctions(r1, r2)
-        Get the shape function matrix in natural coordinates.
-    getShapeFunctionsDerivatives(r1, r2)
-        Get the shape functions derivatives with respect to the natural
-        coordinates.
-
-    Notes
-    -----
-
-    Examples
-    --------
-    >>> mdensity = 500*np.ones(4)
-    >>> thickness = 0.2*np.ones(4)
-    >>> ncoords = np.array([[2, 1], [0, 1], [0, 0], [2, 0]])
-    >>> irule = np.array([
-            [-0.57735027, -0.57735027,  1.,  1.],
-            [ 0.57735027, -0.57735027,  1.,  1.],
-            [ 0.57735027,  0.57735027,  1.,  1.],
-            [-0.57735027,  0.57735027,  1.,  1.]])
-    >>> cmatrix = np.array([
-            [108,  36,  0],
-            [ 36, 108,  0],
-            [  0,   0, 36]])
-    >>> cmatrix = np.repeat(np.array([cmatrix]), 4, axis=0)
-    >>> quad4 = quadrilaterals.Quad4()
-    >>> stiffness = quad4.getStiffness(ncoords, cmatrix, thickness, irule)
-    >>> mass = quad4.getMass(ncoords, mdensity, thickness, irule)
-    """
-
-    degrees = 8
-
     @staticmethod
-    def getShapeFunctions(r1, r2):
+    def getShapeFunctionsMatrix(r1, r2):
 
         """
         Get the shape functions matrix, that relates nodal displacements to 
@@ -259,11 +248,10 @@ class Quad4(Quadrilateral):
             The shape functions matrix of size (2 x 8), where 8 is the number
             of degrees of freedom.
         """
-
-        shapeFunctions = 0.25*np.array([
-                (1+r1)*(1+r2), (1-r1)*(1+r2), (1-r1)*(1-r2), (1+r1)*(1-r2)])
-        out = np.zeros((2, 8))
-        cols = np.arange(0, 8, 2)
+        
+        shapeFunctions = self.getShapeFunctions(r1, r2)
+        out = np.zeros((2, self.degrees))
+        cols = np.arange(0, self.degrees, 2)
 
         for row in range(2):
             out[row, cols+row] = shapeFunctions
@@ -271,8 +259,99 @@ class Quad4(Quadrilateral):
         return out
 
 
+
+class Quad4(Quadrilateral):
+
+    """
+    Class implementing the four-node quadrilateral element for plane-stress 
+    and plane-strain problems.
+
+    Attributes
+    ----------
+    degrees: int
+        The number of degrees of freedom.
+
+    Methods
+    -------
+    getShapeFunctions(r1, r2)
+        Get the shape functions.
+    getShapeFunctionsMatrix(r1, r2)
+        Get the shape function matrix in natural coordinates.
+    getShapeFunctionsDerivatives(r1, r2)
+        Get the shape functions derivatives with respect to the natural
+        coordinates.
+
+    Notes
+    -----
+
+    Examples
+    --------
+    >>> mdensity = 500*np.ones(4)
+    >>> thickness = 0.2*np.ones(4)
+    >>> ncoords = np.array([[2, 1], [0, 1], [0, 0], [2, 0]])
+    >>> irule = np.aarray([
+            [ 0.57735027,  0.57735027,  1.0,  1.0],
+            [-0.57735027,  0.57735027,  1.0,  1.0],
+            [-0.57735027, -0.57735027,  1.0,  1.0],
+            [ 0.57735027, -0.57735027,  1.0,  1.0]])
+
+    >>> cmatrix = np.array([
+            [108,  36,  0],
+            [ 36, 108,  0],
+            [  0,   0, 36]])
+    >>> cmatrix = np.repeat(np.array([cmatrix]), 4, axis=0)
+    >>> quad4 = quadrilaterals.Quad4()
+    >>> stiffness = quad4.getStiffness(ncoords, cmatrix, thickness, irule)
+    >>> mass = quad4.getMass(ncoords, mdensity, thickness, irule)
+    """
+
+    degrees = 8
+
     @staticmethod
-    def getShapeFunctionsDerivatives(r1, r2):
+    def getShapeFunctions(r1, r2):
+        
+        """
+        """
+
+        shapeFunctions = 0.25*np.array([
+                (1+r1)*(1+r2), (1-r1)*(1+r2), (1-r1)*(1-r2), (1+r1)*(1-r2)])
+
+        return shapeFunctions
+
+
+    # @staticmethod
+    # def getShapeFunctionsMatrix(r1, r2): # Rename to getShapeFunctionMatrix
+
+    #     """
+    #     Get the shape functions matrix, that relates nodal displacements to 
+    #     element field displacements, in natural coordinates.
+
+    #     Parameters
+    #     ----------
+    #     r1, r2
+    #         The quadrilateral natural coordinates, ranging from -1 to 1, at
+    #         which the shape functions are evaluated.
+
+    #     Returns
+    #     -------
+    #     out: ndarray
+    #         The shape functions matrix of size (2 x 8), where 8 is the number
+    #         of degrees of freedom.
+    #     """
+
+    #     shapeFunctions = 0.25*np.array([
+    #             (1+r1)*(1+r2), (1-r1)*(1+r2), (1-r1)*(1-r2), (1+r1)*(1-r2)])
+    #     out = np.zeros((2, 8))
+    #     cols = np.arange(0, 8, 2)
+
+    #     for row in range(2):
+    #         out[row, cols+row] = shapeFunctions
+
+    #     return out
+
+
+    @staticmethod
+    def getShapeFunctionsDerivatives(r1, r2): # Rename to jacobian
 
         """
         Get the shape functions derivatives with respect to the natural
@@ -307,6 +386,8 @@ class Quad8(Quadrilateral):
     Methods
     -------
     getShapeFunctions(r1, r2)
+        Get the shape functions.
+    getShapeFunctionsMatrix(r1, r2)
         Get the shape functions matrix.
     getShapeFunctionsDerivatives(r1, r2)
         Get the shape functions derivatives with respect to the natural
@@ -344,23 +425,6 @@ class Quad8(Quadrilateral):
     @staticmethod
     def getShapeFunctions(r1, r2):
 
-        """
-        Get the shape fucntions matrix, that relates nodal displacements to
-        element field displacements.
-
-        Parameters
-        ----------
-        r1, r2: float
-            The quadrilateral natural coordinates, ranging from -1 to 1, at 
-            which the shape functions are evaluated.
-
-        Returns
-        -------
-        out: ndarray
-            The shape functions matrix of size (2 x 16), where 16 is the
-            number of degrees of freedom.
-        """
-
         shapeFunctions = 0.5*np.array([
                 (1+r1)*(1+r2)*(r1+r2-1)/2, 
                 (1-r1)*(1+r2)*(-r1+r2-1)/2,
@@ -370,13 +434,45 @@ class Quad8(Quadrilateral):
                 (1-r1)*(1-r2**2),
                 (1-r1**2)*(1-r2), 
                 (1+r1)*(1-r2**2)])
-        out = np.zeros((2, 16))
-        cols = np.arange(0, 16, 2)
 
-        for row in range(2):
-            out[row, cols+row] = shapeFunctions
+        return shapeFunctions
 
-        return out
+    # @staticmethod
+    # def getShapeFunctionsMatrix(r1, r2):
+
+    #     """
+    #     Get the shape functions matrix, that relates nodal displacements to
+    #     element field displacements.
+
+    #     Parameters
+    #     ----------
+    #     r1, r2: float
+    #         The quadrilateral natural coordinates, ranging from -1 to 1, at 
+    #         which the shape functions are evaluated.
+
+    #     Returns
+    #     -------
+    #     out: ndarray
+    #         The shape functions matrix of size (2 x 16), where 16 is the
+    #         number of degrees of freedom.
+    #     """
+
+    #     shapeFunctions = 0.5*np.array([
+    #             (1+r1)*(1+r2)*(r1+r2-1)/2, 
+    #             (1-r1)*(1+r2)*(-r1+r2-1)/2,
+    #             (1-r1)*(1-r2)*(-r1-r2-1)/2, 
+    #             (1+r1)*(1-r2)*(r1-r2-1)/2,
+    #             (1-r1**2)*(1+r2), 
+    #             (1-r1)*(1-r2**2),
+    #             (1-r1**2)*(1-r2), 
+    #             (1+r1)*(1-r2**2)])
+    #     out = np.zeros((2, 16))
+    #     cols = np.arange(0, 16, 2)
+
+    #     for row in range(2):
+    #         out[row, cols+row] = shapeFunctions
+
+    #     return out
 
 
     @staticmethod
@@ -421,7 +517,7 @@ class Quad9(Quadrilateral):
 
     Methods
     -------
-    getShapeFunctions(r1, r2)
+    getShapeFunctionsMatrix(r1, r2)
         Get the shape functions matrix.
     getShapeFunctionsDerivatives(r1, r2)
         Get the shape functions derivatives with respect to the natural
@@ -459,23 +555,6 @@ class Quad9(Quadrilateral):
     @staticmethod
     def getShapeFunctions(r1, r2):
 
-        """
-        Get the shape functions matrix, that relates nodal quantities to 
-        element field quantities.
-
-        Parameters
-        ----------
-        r1, r2
-            The quadrilateral natural coordinates, ranging from -1 to 1, at
-            which the shape functions are evaluated.
-
-        Returns
-        -------
-        out: ndarray
-            The shape functions matrix of size (3 x 18), where 18 is the
-            number of degrees of freedom.
-        """
-
         shapeFunctions = np.array([
                  (1+r1)*(1+r2)*r1*r2/4, 
                 -(1-r1)*(1+r2)*r1*r2/4,
@@ -486,13 +565,47 @@ class Quad9(Quadrilateral):
                 -(1-r1**2)*(1-r2)*r2/2,
                  (1+r1)*r1*(1-r2**2)/2,
                  (1-r1**2)*(1-r2**2)])
-        out = np.zeros((2, 18))
-        cols = np.arange(0, 18, 2)
 
-        for row in range(2):
-            out[row, cols+row] = shapeFunctions
+        return shapeFunctions
 
-        return out
+
+    # @staticmethod
+    # def getShapeFunctionsMatrix(r1, r2):
+
+    #     """
+    #     Get the shape functions matrix, that relates nodal quantities to 
+    #     element field quantities.
+
+    #     Parameters
+    #     ----------
+    #     r1, r2
+    #         The quadrilateral natural coordinates, ranging from -1 to 1, at
+    #         which the shape functions are evaluated.
+
+    #     Returns
+    #     -------
+    #     out: ndarray
+    #         The shape functions matrix of size (3 x 18), where 18 is the
+    #         number of degrees of freedom.
+    #     """
+
+    #     shapeFunctions = np.array([
+    #              (1+r1)*(1+r2)*r1*r2/4, 
+    #             -(1-r1)*(1+r2)*r1*r2/4,
+    #              (1-r1)*(1-r2)*r1*r2/4, 
+    #             -(1+r1)*(1-r2)*r1*r2/4,
+    #              (1-r1**2)*(1+r2)*r2/2,
+    #             -(1-r1)*r1*(1-r2**2)/2,
+    #             -(1-r1**2)*(1-r2)*r2/2,
+    #              (1+r1)*r1*(1-r2**2)/2,
+    #              (1-r1**2)*(1-r2**2)])
+    #     out = np.zeros((2, 18))
+    #     cols = np.arange(0, 18, 2)
+
+    #     for row in range(2):
+    #         out[row, cols+row] = shapeFunctions
+
+    #     return out
 
 
     @staticmethod
@@ -516,6 +629,18 @@ class Quad9(Quadrilateral):
         """
 
         out = np.zeros((2, 9))
+
+        # out[0, :2] = np.array([(1+r2)*(2*r1*r2+r2), (1+r2)*(2*r1*r2-r2)])/4
+        # out[0, 2:4] = np.array([-(1-r2)*(2*r1*r2-r2), -(1-r2)*(2*r1*r2+r2)])/4
+        # out[0, 4:6] = np.array([-2*r1*r2*(1+r2), (1-2*r1)*(1+r2**2)])/2
+        # out[0, 6:8] = np.array([2*r1*r2*(1-r2), (1+2*r1)*(1-r2**2)])/2
+        # out[0, 8:] = np.array([-2*r1*(1-r2**2)])
+
+        # out[1, :2] = np.array([(1+r1)*(2*r1*r2+r1), -(1-r1)*(2*r1*r2+r1)])/4
+        # out[1, 2:4] = np.array([-(1-r1)*(2*r1*r2-r1), (1+r1)*(2*r1*r2-r1)])/4
+        # out[1, 4:6] = np.array([-(1+r1**2)*(1+2*r2), (1-r1)*2*r1*r2])/2
+        # out[1, 6:8] = np.array([-(1-r1**2)*(1-2*r2), -(1+r1)*2*r1*r2])/2
+        # out[1, 8:] = np.array([-2*r2*(1-r1**2)])
 
         out[0, :2] = np.array([(1+r2)*(2*r1*r2+r2), (1+r2)*(2*r1*r2-r2)])/4
         out[0, 2:4] = np.array([-(1-r2)*(2*r1*r2-r2), -(1-r2)*(2*r1*r2+r2)])/4
