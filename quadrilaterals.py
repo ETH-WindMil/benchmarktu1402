@@ -205,7 +205,6 @@ class Quadrilateral(abc.ABC):
         return deformation, jacobian
 
 
-
     def getJacobian(self, ncoords, r1, r2):
 
         """
@@ -229,8 +228,7 @@ class Quadrilateral(abc.ABC):
         return jacobian
 
 
-    @staticmethod
-    def getShapeFunctionsMatrix(r1, r2):
+    def getShapeFunctionsMatrix(self, r1, r2):
 
         """
         Get the shape functions matrix, that relates nodal displacements to 
