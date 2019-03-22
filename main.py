@@ -41,7 +41,7 @@ def main(job):
             [10, 0.5]]) # temperature, x / length
 
     # janalysis = 'Time history'
-    janalysis = 'Modal'
+    janalysis = 'Static'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
 
     loadCase = '1'              # 1, 2, 3
@@ -114,7 +114,7 @@ def main(job):
 
     elements = []
     etype = quadrilaterals.Quad4()
-    irule = quadrature.Gauss.inQuadrilateral(rule=3).info
+    irule = quadrature.Gauss.inQuadrilateral(rule=2).info
 
     for i, j in enumerate(indices):
 
@@ -225,21 +225,26 @@ def main(job):
     #  Extract degrees of freedom for output locations
 
     columns = np.arange(5, nel_x+5, 10)[np.newaxis].T*(nel_y+1)
-    rows = np.tile(np.array([1, 3, 5]), len(columns)).reshape((len(columns), 3))
-    rows = (columns+rows).reshape((rows.size,))
-    odofs = np.sort(np.hstack((rows*2, rows*2+1)))
-    ocoords = np.array([(nodes[j].coords[0], nodes[j].coords[1]) for j in rows])
+    olabels = np.tile(np.array([1, 3, 5]), len(columns)).reshape((len(columns), 3))
+    olabels = (columns+olabels).reshape((olabels.size,))
+    odofs = np.sort(np.hstack((olabels*2, olabels*2+1)))
+    ocoords = np.array([(nodes[j].coords[0], nodes[j].coords[1]) for j in olabels])
+
+    print(columns)
+    print(olabels)
+
+    print(nodes[columns[1][0]].label)
 
     # Save labels and coordinates of measurement nodes
 
-    output = np.vstack((rows, ocoords.T)).T
+    output = np.vstack((olabels, ocoords.T)).T
     labels, frmt = 'label  x  y', ['%d', '%10.5f', '%10.5f']
     np.savetxt('Output_nodes.dat', output, fmt=frmt, header=labels)
 
     # Save labels of measurement degrees of freedom
 
-    xlabels = np.array([str(item)+'x' for item in rows])
-    ylabels = np.array([str(item)+'y' for item in rows])
+    xlabels = np.array([str(item)+'x' for item in olabels])
+    ylabels = np.array([str(item)+'y' for item in olabels])
     labels = np.vstack((xlabels, ylabels)).T.flatten()
     labels = '   '.join(label for label in labels)
 
@@ -350,10 +355,32 @@ def main(job):
 
         displacements = static.displacement[odofs][np.newaxis]
 
+        # Extract strains at output nodes
+
+        strains = np.zeros((len(olabels), 3))
+        rcoords = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
+
+        for k, olabel in enumerate(olabels):
+            elabels = np.sort(nodes[olabel].links)
+
+            for elabel, (r1, r2) in zip(elabels, rcoords):
+                ncoords = elements[elabel].getNodeCoordinates()
+                ipoints = elements[elabel].getIntegrationPoints()
+
+                edofs = elements[elabel].getNodeDegreesOfFreedom()
+                disp = static.displacement[edofs]
+                element = elements[elabel].getType()
+
+                strain = element.getStrain(ncoords, disp, ipoints, r1, r2)
+                nodes[olabel].strain += strain
+
+            strains[k, :] = nodes[olabel].strain
+
         # Save results
 
         sys.stdout.write('Writting output files ...\n')
         np.savetxt(jname+'_displacements.dat', displacements, header=labels)
+        np.savetxt(jname+'_strains.dat', strains)
 
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
@@ -392,11 +419,11 @@ def main(job):
     #             clr = 'r'
     #             width = 0.5
 
-    #         elements[i].deformed(scale=1e6, color=clr, lnwidth=width)
+    #         elements[i].deformed(scale=0, color=clr, lnwidth=width)
 
     #         # elements[i].plotLabel()
 
-    #     for lab in rows:
+    #     for lab in olabels:
     #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
     #     for lab in [63*7-1, 139*7-1]:
