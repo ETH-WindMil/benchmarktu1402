@@ -26,6 +26,8 @@ class Node:
         self.vlc = np.zeros((6, 1))
         self.acl = np.zeros((6, 1))
 
+        self.strain = np.zeros(3)
+
         self.adof = np.ones(6)*False
         self.cdof = np.ones(6)*False
         self.ndof = np.ones(6)*np.nan
@@ -74,18 +76,7 @@ class Node:
             String = self.dictionary.keys()
         for i, j in enumerate(String):
             self.__dict__[Name][self.dictionary[j]] += Value[i]
-            
-            
-    def plotId(self, axis):
-        axis.text(self.crd[0]+self.dsp[0],
-                  self.crd[1]+self.dsp[1],
-                  self.crd[2]+self.dsp[2], self.id, va='bottom', ha='right')
 
-
-    def plotMark(self, axis):
-        axis.plot([self.crd[0]+self.dsp[0]],
-                  [self.crd[1]+self.dsp[1]],
-                  [self.crd[2]+self.dsp[2]], marker='.', color='k')
 
 
 class Element:
@@ -97,6 +88,37 @@ class Element:
         self.material = material
         self.thickness = thickness
         self.irule = irule
+
+
+    def getNodeCoordinates(self):
+
+        ncoords = np.array([node.coords[:2] for node in self.nodes])
+        return ncoords
+
+
+    def getNodeLabels(self):
+
+        labels = [node.label for node in self.nodes]
+        return labels
+
+
+    def getNodeDegreesOfFreedom(self):
+
+        degreesOfFreedom = np.hstack([node.ndof[:2] for node in self.nodes])
+        degreesOfFreedom = degreesOfFreedom.astype(int)
+
+        return degreesOfFreedom
+
+
+    def getIntegrationPoints(self):
+
+        ipoints = self.irule[:, :2]
+        return ipoints
+
+
+    def getType(self):
+
+        return self.type
 
 
     def getStiffness(self):
@@ -144,6 +166,13 @@ class Element:
         y = [node.coords[1]+node.dsp[1]*scale for node in enodes]
 
         plt.plot(x, y, color, linewidth=lnwidth)
+
+    # def plotLabel(self):
+
+    #     x = np.sum([node.coords[0]+node.dsp[0]*0 for node in self.nodes])/4
+    #     y = np.sum([node.coords[1]+node.dsp[1]*0 for node in self.nodes])/4
+
+    #     plt.text(x, y, self.label)
 
 
 
