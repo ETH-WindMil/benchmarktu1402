@@ -230,10 +230,6 @@ def main(job):
     odofs = np.sort(np.hstack((olabels*2, olabels*2+1)))
     ocoords = np.array([(nodes[j].coords[0], nodes[j].coords[1]) for j in olabels])
 
-    print(columns)
-    print(olabels)
-
-    print(nodes[columns[1][0]].label)
 
     # Save labels and coordinates of measurement nodes
 
