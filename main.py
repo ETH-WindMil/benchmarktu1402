@@ -138,11 +138,11 @@ def main(job):
 
         #  Calculate stiffnes reduction
 
-        reduction = jdamage if i in damagedElements else 1
+        reduction = jdamage if i in damagedElements else 0
 
         #  Define material properties for each integration point
 
-        E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])*reduction
+        E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])*(1-reduction)
         n = np.interp(xi, jmaterial[:, 2], jmaterial[:, 1])
         materials = []
 
@@ -183,42 +183,57 @@ def main(job):
 
     #  Apply boundary conditions
 
+    blabels = [] # Labels of boundary nodes
+
     for node in nodes:
         x, y = node.coords[0], node.coords[1]
 
         #  Left-hand side constraints
 
         if x == 0 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
         elif x == el_size_x and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
         elif x == el_size_x*2 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
         elif x == el_size_x*3 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
 
         #  Mid-point constraints
 
         elif x == length/2-el_size_x*2 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2-el_size_x and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2+el_size_x and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
         elif x == length/2+el_size_x*2 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
 
         #  Right-hand side constraints
 
         elif x == length-el_size_x*3 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
         elif x == length-el_size_x*2 and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
         elif x == length-el_size_x and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
         elif x == length and y == -height_start/2:
+            blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
 
 
@@ -321,10 +336,15 @@ def main(job):
         dynamics.setIncrementSize(period)
         dynamics.submit()
 
-        # Extract time response at output degrees of freedom
+        # Extract displacements and accelerations at output degrees of freedom
 
         displacements = dynamics.modes[odofs, :].dot(dynamics.displacement).T
         accelerations = dynamics.modes[odofs, :].dot(dynamics.acceleration).T
+
+        # Extract strains at output degrees of freedom
+
+
+
 
         # Save results
 
