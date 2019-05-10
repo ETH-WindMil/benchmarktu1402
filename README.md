@@ -71,7 +71,7 @@ Depending on the type of analysis, the following files are further generated for
       </tr>
       <tr>
           <td> <i>Job_name</i>_strains.dat </td>
-          <td> Contains the srain time history at output locations </td>
+          <td> Contains the strain time history at output locations </td>
       </tr>
   </tbody>
 </table>
@@ -87,6 +87,5 @@ If you think you've found a bug, go ahead and create a new [GitHub issue](https:
 ## Notes
 
 - The backend and frontend are currently not connected
-- Extraction of strain time history is not yet available
 - The code can be configured and executed through main.py script
 - All python dependencies are included in [Anaconda](https://www.anaconda.com/distribution/) installations
