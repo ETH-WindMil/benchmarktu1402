@@ -41,13 +41,13 @@ def main(job):
             [10, 0.5]]) # temperature, x / length
 
     # janalysis = 'Time history'
-    janalysis = 'Static'
+    janalysis = 'Time history'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
 
-    loadCase = '1'              # 1, 2, 3
-    alpha, beta = 1e-1, 1e-1    # Rayleigh damping coefficients
-    period = 10                 # Simulation period
-    increment = 0.1             # Time increment
+    loadCase = '2'              # 1, 2, 3
+    alpha, beta = 1e-5, 1e-5    # Rayleigh damping coefficients
+    period = 20                 # Simulation period
+    increment = 0.05             # Time increment
     jname = 'Job-1'             # job name
 
 
@@ -237,7 +237,7 @@ def main(job):
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
 
 
-    #  Extract degrees of freedom for output locations
+    #  Extract degrees of freedom for output locations. 
 
     columns = np.arange(5, nel_x+5, 10)[np.newaxis].T*(nel_y+1)
     olabels = np.tile(np.array([1, 3, 5]), len(columns)).reshape((len(columns), 3))
@@ -246,7 +246,8 @@ def main(job):
     ocoords = np.array([(nodes[j].coords[0], nodes[j].coords[1]) for j in olabels])
 
 
-    # Save labels and coordinates of measurement nodes
+    # Save labels and coordinates of nodes where response quantities are
+    # extracted.
 
     output = np.vstack((olabels, ocoords.T)).T
     labels, frmt = 'label  x  y', ['%d', '%10.5f', '%10.5f']
@@ -336,29 +337,116 @@ def main(job):
         dynamics.setIncrementSize(period)
         dynamics.submit()
 
+        time = np.arange(0, period+increment, increment)
+        nmodes = dynamics.displacement.shape[0]
+
+        displacement = np.zeros((nmodes, time.size))
+        acceleration = np.zeros((nmodes, time.size))
+
+        for m in range(nmodes):
+
+            displacement[m, :] = np.interp(time, dynamics.time, dynamics.displacement[m, :])
+            acceleration[m, :] = np.interp(time, dynamics.time, dynamics.acceleration[m, :])
+
         # Extract displacements and accelerations at output degrees of freedom
 
-        displacements = dynamics.modes[odofs, :].dot(dynamics.displacement).T
-        accelerations = dynamics.modes[odofs, :].dot(dynamics.acceleration).T
+        displacements = dynamics.modes[odofs, :].dot(displacement).T
+        accelerations = dynamics.modes[odofs, :].dot(acceleration).T
 
         # Extract strains at output degrees of freedom
 
+        # print(dynamics.displacement.shape)
+
+        strains = np.zeros((time.size, len(olabels), 3)) # define time_steps
+        rcoords = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
+
+        # for i, time in enumerate(time):
+
+        #     sys.stdout.write('Time step {}\r'.format(i))
+
+        #     for k, olabel in enumerate(olabels):
+        #         elabels = np.sort(nodes[olabel].links)
+
+        #         for elabel, (r1, r2) in zip(elabels, rcoords):
+
+        #             ncoords = elements[elabel].getNodeCoordinates()
+        #             ipoints = elements[elabel].getIntegrationPoints()
+
+        #             edofs = elements[elabel].getNodeDegreesOfFreedom()
+        #             disp = dynamics.modes[edofs, :].dot(displacement[:, i]).T
+        #             element = elements[elabel].getType()
+
+        #             strain = element.getStrain(ncoords, disp, ipoints, r1, r2)
+        #             nodes[olabel].strain += strain
+
+        #         strains[i, k, :] = nodes[olabel].strain
+        #         nodes[olabel].strain[:] = 0
+
+        strain_history = np.zeros((time.size, 3))
 
 
+        for k, olabel in enumerate(olabels):
+            elabels = np.sort(nodes[olabel].links)
 
-        # Save results
+            for elabel, (r1, r2) in zip(elabels, rcoords):
+
+                ncoords = elements[elabel].getNodeCoordinates()
+                ipoints = elements[elabel].getIntegrationPoints()
+
+                edofs = elements[elabel].getNodeDegreesOfFreedom()
+                disp = dynamics.modes[edofs, :].dot(displacement)# .T
+                element = elements[elabel].getType()
+
+                print(disp.shape) 
+                # 1. rows of disp should contain element displacements
+                # 2. columns of disp should contain time steps
+
+                strain = element.getStrain(ncoords, disp, ipoints, r1, r2)[0].T
+
+                # 1. rows of strain should contain strain components Exx, Eyy, Exy
+                # 2. columns of strain should contain time steps
+
+                print(strain.shape)
+                strain_history += strain
+                # nodes[olabel].strain += strain
+
+            strains[:, k, :] = strain_history/len(nodes[olabel].links)
+            strain_history[:] = 0
+
+        strains = strains.reshape((time.size, len(olabels)*3))
+
+        # Save results (displacements, accelerations and strains)
 
         sys.stdout.write('Writting output files ...\n')
 
-        np.savetxt(jname+'_displacements.dat', displacements, header=labels)
-        np.savetxt(jname+'_accelerations.dat', accelerations, header=labels)
+        labels = ''.join([
+            'Node-{}-Ux'.format(label).ljust(24, ' ')+
+            'Node-{}-Uy'.format(label).ljust(24, ' ') for label in olabels])
+        fname = jname+'_displacements.dat'
+        np.savetxt(fname, displacements, fmt='% .16e', header=labels)
+
+        labels = ''.join([
+            'Node-{}-Ax'.format(label).ljust(24, ' ')+
+            'Node-{}-Ay'.format(label).ljust(24, ' ') for label in olabels])
+        fname = jname+'_accelerations.dat'
+        np.savetxt(fname, accelerations, fmt='% .16e', header=labels)
+
+        labels = ''.join([
+            'Node-{}-Exx'.format(label).ljust(24, ' ')+
+            'Node-{}-Eyy'.format(label).ljust(24, ' ')+
+            'Node-{}-Exy'.format(label).ljust(24, ' ') for label in olabels])
+        fname = jname+'_strains.dat'
+        np.savetxt(fname, strains, fmt='% .16e', header=labels)
+
 
     elif janalysis == 'Static':
 
         nlabel = 63*(nel_y+1)-1
 
-        loadCase = np.loadtxt('Load_case_2.dat', skiprows=1)
-        time, force = loadCase[0, 0], loadCase[1, 1]
+        # loadCase = np.loadtxt('Load_case_2.dat', skiprows=1)
+        # time, force = loadCase[0, 0], loadCase[1, 1]
+        time = 30 # np.linspace(0, 30, 10000)
+        force = 1e3
         amplitude = [np.array([time, force])]
         model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
 
@@ -392,12 +480,24 @@ def main(job):
 
             strains[k, :] = nodes[olabel].strain
 
+        strains = strains.reshape((1, strains.size))
+
         # Save results
+
+        labels = ''.join([
+            'Node-{}-Exx'.format(label).ljust(24, ' ')+
+            'Node-{}-Eyy'.format(label).ljust(24, ' ')+
+            'Node-{}-Exy'.format(label).ljust(24, ' ') for label in olabels])
 
         sys.stdout.write('Writting output files ...\n')
         np.savetxt(jname+'_displacements.dat', displacements, header=labels)
-        np.savetxt(jname+'_strains.dat', strains)
+        np.savetxt(jname+'_strains.dat', strains, fmt='% .16e', header=labels)
 
+        # fmt='{:*^10}'.format('%f')
+        # fmt='%.16f'
+        # fmt='%25.20f'
+        # fmt='{:<10}'.format('%e')
+        # fmt='{:>25}'.format('%.15e')
 
     nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
 
