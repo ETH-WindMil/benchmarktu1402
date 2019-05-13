@@ -9,9 +9,13 @@ relying on the Value of Information.
 
 - Pull down a copy of the code by cloning or downloading the repository
 - Open a terminal and change the current directory to the benchmark folder
-- Run the benchmark through the terminal by typing
+- Run the benchmark backend through the terminal by typing
 ```
 python main.py
+```
+- Run the benchmark frontend through the terminal by typing
+```
+python gui.py
 ```
 
 ## Documentation
