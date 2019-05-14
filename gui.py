@@ -1,5 +1,7 @@
+import os
 import sys
 import copy
+import webbrowser
 import numpy as np
 import itertools as it
 import tkinter as tk
@@ -12,6 +14,10 @@ from matplotlib.backends.backend_tkagg import (
 # Implement the default Matplotlib key bindings.
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+
+from PIL import Image, ImageTk
+
+import main
 
 
 __author__ = 'Konstantinos Tatsis'
@@ -30,7 +36,7 @@ class Main(tk.Frame):
         self.frame = tk.Frame(self.root)
         self.frame.grid()
 
-        # Instantiate the GUI widgets
+        # instantiate other objects
 
         self.scenario = Scenario(self)
         self.model = Model(self, row=0, column=1)
@@ -85,7 +91,8 @@ class Main(tk.Frame):
 
 
     def callbackHelp(self):
-        pass
+        
+        webbrowser.open_new(r"https://github.com/ETH-WindMil/benchmarktu1402/blob/master/IOMAC_2019.pdf")
 
 
     def callbackClose(self):
@@ -102,15 +109,14 @@ class Main(tk.Frame):
 
 class Job:
 
-    """ Class for defining and interfacing with Job properties. """
 
     def __init__(self):
         values = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.material = {'values': values, 'temperature': False}
 
         values = {(0, 0): '200000000000', (0, 1): '200000000000', (0, 2): '25'}
-        self.boundaries = {'left': values, 'mid':values, 
-                'right': values, 'temperature': False, 'identical': False}
+        self.boundaries = {'values1': values, 'values2':values, 
+                'values3': values, 'temperature': False, 'identical': False}
 
         values = {(0, 0): '10', (0, 1):'0.5'}
         self.corrosion = {'values': values, 'spatial': False}
@@ -126,11 +132,11 @@ class Job:
         self.material['temperature'] = temperature
 
 
-    def setBoundaries(self, left, mid, right, temperature, identical):
+    def setBoundaries(self, values1, values2, values3, temperature, identical):
 
-        self.boundaries['left'] = left
-        self.boundaries['mid'] = mid
-        self.boundaries['right'] = right
+        self.boundaries['values1'] = values1
+        self.boundaries['values2'] = values2
+        self.boundaries['values3'] = values3
         self.boundaries['temperature'] = temperature
         self.boundaries['identical'] = identical
 
@@ -250,7 +256,19 @@ class Scenario:
 
         print('Submit callback function to be written.')
 
-        # Run each job separately and print message 
+        # Run each job separately and print message
+
+        for item in self.main.scenario.jobs.keys():
+
+            pass
+
+            # Call main.main(self.scenario.jobs[job])
+
+            # print(self.main.scenario.jobs[item].material)
+            # print(self.main.scenario.jobs[item].boundaries)
+            # print(self.main.scenario.jobs[item].corrosion)
+            # print(self.main.scenario.jobs[item].temperature)
+
 
 
 
@@ -357,80 +375,43 @@ class Model:
         frame.grid(row=self.row, column=self.column, columnspan=2, 
                 padx=(5, 10), pady=(10, 5), sticky=tk.N+tk.W+tk.E+tk.S)
 
-        self.plots = {}
-        fig = plt.figure(figsize=(6, 2))
-        ax = fig.add_subplot(111)
-        ax.get_yaxis().set_ticks([])
-        reference, = ax.plot(np.arange(100), np.random.rand(100))
+        label = tk.Label(frame)
+        label.img = ImageTk.PhotoImage(file='./pictures/healthy.jpg', master=frame)
+        label.config(image=label.img)
+        label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W+tk.E+tk.S+tk.N)
 
-        plt.tight_layout()
-        plt.xlim([0, 100])
-        plt.ylim([0, 1])
-        plt.axis('off')
-        
-        self.plots['Reference'] = reference
+        self.frame = frame
+        self.label = label
 
-        # self.image = Image.open("Model.jpeg")
-        # self.model = ImageTk.PhotoImage(self.image)
-        # (iwidth, iheight) = self.image.size
-        # # model = tk.PhotoImage(file = 'Model.png')
-
-        # canvas = tk.Canvas(frame, width=440, height=180, bg='white')
-        # canvas.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W+tk.E+tk.S+tk.N)
-        # canvas.create_image(0, 0, image=self.model, anchor=tk.N)
-
-        canvas = FigureCanvasTkAgg(fig, master=frame)
-        canvas.draw()
-        canvasw = canvas.get_tk_widget()
-        canvasw['width'] = 440
-        canvasw['height'] = 180
-        canvasw.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W+tk.E+tk.S+tk.N)
-
-        self.widgets = [fig]
-        self.canvas = canvas
 
 
     def updateModelPlot(self, case):
 
-        x = np.arange(100)
-
         if case == (0,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('blue')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/healthy.jpg'
         elif case == (1,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('red')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/damage_1.jpg'
         elif case == (2,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('green')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/damage_2.jpg'
         elif case == (3,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('yellow')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/damage_3.jpg'
         elif case == (4,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('black')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/damage_4.jpg'
         elif case == (5,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('orange')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/damage_5.jpg'
         elif case == (6,):
-            self.plots['Reference'].set_data(x, np.random.rand(100))
-            self.plots['Reference'].set_color('pink')
-            self.plots['Reference'].set_linestyle(':')
+            file = './pictures/damage_6.jpg'
 
-        self.canvas.draw()
+        self.label.img = ImageTk.PhotoImage(file=file, master=self.frame)
+        self.label.config(image=self.label.img)
 
 
     def destroyModelPlot(self):
 
         """ Destroy model plot. """
 
-        plt.close(self.widgets[0])
+        # plt.close(self.widgets[0])
+        pass
 
 
 
@@ -442,11 +423,15 @@ class Material:
 
     def __init__(self, parent):
 
+        self.parent = parent
+        w = self.parent.root.winfo_x()
+        h = self.parent.root.winfo_y()
+
         self.root = tk.Toplevel()
         self.root.title('Material properties')
         self.root.protocol("WM_DELETE_WINDOW", self.callbackCancel)
         self.root.resizable(False, False)
-        self.parent = parent
+        # self.root.geometry("%dx%d+%d+%d" % (w, h, 300+10, 500+20))
 
         self.createTable()
         self.createButtons()
@@ -671,16 +656,16 @@ class BoundaryConditions:
             check2.select()
 
         # Insert table values to all three boundaries, based on job definition
-        for (i, j) in self.parent.job.boundaries['left'].keys():
-            value = self.parent.job.boundaries['left'][(i, j)]
+        for (i, j) in self.parent.job.boundaries['values1'].keys():
+            value = self.parent.job.boundaries['values1'][(i, j)]
             self.widgets['lcells'][i][j].insert(tk.END, value)
 
-        for (i, j) in self.parent.job.boundaries['mid'].keys():
-            value = self.parent.job.boundaries['mid'][(i, j)]
+        for (i, j) in self.parent.job.boundaries['values2'].keys():
+            value = self.parent.job.boundaries['values2'][(i, j)]
             self.widgets['mcells'][i][j].insert(tk.END, value)
 
-        for (i, j) in self.parent.job.boundaries['right'].keys():
-            value = self.parent.job.boundaries['right'][(i, j)]
+        for (i, j) in self.parent.job.boundaries['values3'].keys():
+            value = self.parent.job.boundaries['values3'][(i, j)]
             self.widgets['rcells'][i][j].insert(tk.END, value)
 
         self.callbackIdenticalBCs()
@@ -737,33 +722,32 @@ class BoundaryConditions:
 
 
         # Store non-zero table data of all three supports into a dictionary
-        valuesLeft = {}
+        values1 = {}
         for i, columns in enumerate(self.widgets['lcells']):
             for j, column in enumerate(columns):
                 value = column.get()
                 if value != '':
-                    valuesLeft[(i, j)] = value
+                    values1[(i, j)] = value
 
-        valuesMid = {}
+        values2 = {}
         for i, columns in enumerate(self.widgets['mcells']):
             for j, column in enumerate(columns):
                 value = column.get()
                 if value != '':
-                    valuesMid[(i, j)] = value
+                    values2[(i, j)] = value
 
-        valuesRight = {}
+        values3 = {}
         for i, columns in enumerate(self.widgets['rcells']):
             for j, column in enumerate(columns):
                 value = column.get()
                 if value != '':
-                    valuesRight[(i, j)] = value
+                    values3[(i, j)] = value
 
         # Save material data into the current job
         temp = self.widgets['temp'].get()
         identical = self.widgets['identicalBCs'].get()
-
         print('1', temp, identical)
-        self.parent.job.setBoundaries(valuesLeft, valuesMid, valuesRight, temp, identical)
+        self.parent.job.setBoundaries(values1, values2, values3, temp, identical)
         print('2', self.parent.job.boundaries['temperature'], self.parent.job.boundaries['identical'])
 
         # Switch parent widgets back to normal state
@@ -895,10 +879,15 @@ class Temperature:
     def __init__(self, parent):
 
         self.parent = parent
+        w = self.parent.root.winfo_x()
+        h = self.parent.root.winfo_y()
+
         self.root = tk.Toplevel()
         self.root.title('Temperature')
         self.root.protocol("WM_DELETE_WINDOW", self.callbackCancel)
         self.root.resizable(False, False)
+
+        self.root.geometry("%dx%d+%d+%d" % (185, 435, w+20, h+20))
 
         self.createTable()
         self.createButtons()
@@ -1314,7 +1303,7 @@ class Analysis:
 
 
         case = ttk.Combobox(frame, values=['Load case 1', 'Load case 2', 
-                'Load case 3', 'Load case 4'], state='readonly')
+                'Load case 3'], state='readonly')
         case.current(0)
         case.grid(row=6, column=0, columnspan=2, padx=10, pady=(0, 10), 
                 sticky=tk.W+tk.N+tk.E)
@@ -1370,6 +1359,8 @@ class Analysis:
         jobs = listbox.get(0, tk.END)
         job = self.jobWidgets['job'].get()
 
+        print(job, type(job))
+
         if job in jobs:
             message = 'Job name already exists!'
             messagebox.showwarning('Warning', message)
@@ -1382,7 +1373,7 @@ class Analysis:
 
         # 4. Save job to joblist and model specifics
 
-        self.main.scenario.jobs['job'] = copy.deepcopy(self.main.job)
+        self.main.scenario.jobs[job] = copy.deepcopy(self.main.job)
 
 
     def switchJobWidgets(self, state):
