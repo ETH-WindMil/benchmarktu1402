@@ -96,19 +96,20 @@ class Main(tk.Frame):
         print('Name:', self.job.name, type(self.job.name))
 
         # Set job model
-        selection = self.settings.modelConfiguration[0].curselection()
-        self.job.setModel(self.settings.modelConfiguration[0].get(selection))
+        selection = self.settings.modelConfiguration[0].curselection()[0]
+        # self.job.setModel(self.settings.modelConfiguration[0].get(selection))
+        self.job.setModel(selection)
 
         print('Model:', self.job.model, type(self.job.model))
 
         # Set job thickness
-        thickness = self.settings.modelConfiguration[2].get()
+        thickness = float(self.settings.modelConfiguration[2].get())
         self.job.setThickness(thickness)
 
         print('Thickness:', self.job.thickness, type(self.job.thickness))
 
         # Set job damage
-        damage = self.settings.modelConfiguration[4].get()
+        damage = float(self.settings.modelConfiguration[4].get())
         self.job.setDamage(damage)
 
         print('Damage:', self.job.damage, type(self.job.damage))
@@ -117,19 +118,28 @@ class Main(tk.Frame):
         # are already set once the corresponding widgets are closed.
         
         # Set type of analysis
-        print(self.analysis.analysisTypeVariables['Analysis'].get())
+        analysis = self.analysis.analysisTypeVariables['Analysis'].get()
+        self.job.setAnalysis(analysis)
+        
+        print(self.job.analysis, type(self.job.analysis))
 
         # Set settings for modal analysis
-        print(self.analysis.modalSettings[1].get()) # Number of modes
-        print(self.analysis.modalSettingsVariables['Modes'].get()) # Number of modes
-        print(self.analysis.modalSettingsVariables['Normalization'].get())
+        modes = int(self.analysis.modalSettingsVariables['Modes'].get())
+        index = self.analysis.modalSettingsVariables['Normalization'].get()
+        normalization = 'Mass' if index == '1' else 'Displacement'
+        self.job.setModalSettings(modes, normalization)
 
-        # Set settings fro dynamic analysis
-        print(self.analysis.historySettings[2].get())
-        print(self.analysis.historySettings[4].get())
-        print(self.analysis.historySettings[6].get())
-        print(self.analysis.historySettings[8].get())
-        print(self.analysis.historySettings[10].get())
+        print(self.job.modalSettings)
+
+        # Set settings for dynamic analysis
+        alpha = float(self.analysis.historySettings[2].get())
+        beta = float(self.analysis.historySettings[4].get())
+        period = float(self.analysis.historySettings[6].get())
+        increment = float(self.analysis.historySettings[8].get())
+        lcase = int(self.analysis.historySettings[10].get()[-1])
+        self.job.setTimeHistorySettings(alpha, beta, period, increment, lcase)
+
+        print(self.job.timeHistorySettings)
 
 
     def retrieveJob(self, job):
@@ -182,7 +192,7 @@ class Job:
         self.modalSettings = {'Modes': 5, 'Normalization': 'Mass'} 
 
         self.timeHistorySettings = {'Alpha': 0.005, 'Beta': 0.005, 
-                'Period': 10, 'Incerement': 0.1, 'Load case': 1}
+                'Period': 10, 'Increment': 0.1, 'Load case': 1}
 
 
     def setName(self, name):
@@ -219,7 +229,7 @@ class Job:
         self.material['temperature'] = temperature
 
     def getMaterial(self):
-        pass
+        return self.material
 
 
     def setBoundaries(self, values1, values2, values3, temperature, identical):
@@ -231,25 +241,46 @@ class Job:
         self.boundaries['identical'] = identical
 
     def getBoundaries(self):
-        pass
+        return self.boundaries
 
 
     def setCorrosion(self, values, spatial):
-
         self.corrosion['values'] = values
         self.corrosion['spatial'] = spatial
 
     def getCorrosion(self):
-        pass
+        return self.corrosion
 
 
     def setTemperature(self, values, spatial):
-
         self.temperature['values'] = values
         self.temperature['spatial'] = spatial
 
     def getTemperature(self):
-        pass
+        return self.temperature
+
+
+    def setAnalysis(self, analysis):
+        self.analysis = analysis
+
+    def getAnalysis(self):
+        return analysis
+
+
+    def setModalSettings(self, modes, normalization):
+        self.modalSettings['Modes'] = modes
+        self.modalSettings['Normalization'] = normalization
+
+    def getModalSettings(self):
+        return self.modalSettings
+
+
+    def setTimeHistorySettings(self, alpha, beta, period, increment, lcase):
+        self.timeHistorySettings['Alpha'] = alpha
+        self.timeHistorySettings['Beta'] = beta
+        self.timeHistorySettings['Period'] = period
+        self.timeHistorySettings['Increment'] = increment
+        self.timeHistorySettings['Load case'] = lcase
 
 
 
@@ -1427,10 +1458,10 @@ class Analysis:
         label.grid(row=3, column=1, padx=(7, 10), pady=(3, 2), sticky=tk.W+tk.N)
         self.historySettings.append(label)
 
-        incerement = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var4'])
-        incerement.insert(tk.END, self.main.job.timeHistorySettings['Incerement'])
-        incerement.grid(row=4, column=1, padx=10, pady=(0, 2), sticky=tk.W+tk.N)        
-        self.historySettings.append(incerement)
+        increment = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var4'])
+        increment.insert(tk.END, self.main.job.timeHistorySettings['Increment'])
+        increment.grid(row=4, column=1, padx=10, pady=(0, 2), sticky=tk.W+tk.N)        
+        self.historySettings.append(increment)
 
         label = tk.Label(frame, text='Load case', anchor=tk.W)
         label.grid(row=5, column=0, padx=10, pady=(3, 2), sticky=tk.W+tk.N)
