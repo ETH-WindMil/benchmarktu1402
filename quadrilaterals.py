@@ -156,13 +156,6 @@ class Quadrilateral(abc.ABC):
             which the strain vector is returned.
         """
 
-        print('Shape of displacements: ', displacements.shape)
-
-        # try:
-        #     istrain = np.zeros((3, ipoints.shape[0], displacements.shape[1]))
-        # except IndexError:
-        #     istrain = np.zeros((ipoints.shape[0], 3))
-
         istrain = np.zeros((3, ipoints.shape[0], displacements.shape[1]))
 
         for j, (px, py) in enumerate(ipoints):
