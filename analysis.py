@@ -42,9 +42,9 @@ class Static:
         Ur = np.zeros(len(rdof))
         Uf = sps.linalg.inv(Kff).dot(Ff-Kfr.dot(Ur))
 
-        self.displacement = np.zeros(len(ndof))
-        self.displacement[rdof] = Ur
-        self.displacement[fdof] = Uf
+        self.displacement = np.zeros((len(ndof), 1))
+        self.displacement[rdof, 0] = Ur
+        self.displacement[fdof, 0] = Uf
 
 
 
