@@ -41,7 +41,7 @@ def main(job):
             [10, 0.5]]) # temperature, x / length
 
     # janalysis = 'Time history'
-    janalysis = 'Time history'
+    janalysis = 'Modal'
     jsettings = {'modes': 5, 'normalization': 'Mass'}
 
     loadCase = '2'              # 1, 2, 3
@@ -355,32 +355,8 @@ def main(job):
 
         # Extract strains at output degrees of freedom
 
-        # print(dynamics.displacement.shape)
-
         strains = np.zeros((time.size, len(olabels), 3)) # define time_steps
         rcoords = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
-
-        # for i, time in enumerate(time):
-
-        #     sys.stdout.write('Time step {}\r'.format(i))
-
-        #     for k, olabel in enumerate(olabels):
-        #         elabels = np.sort(nodes[olabel].links)
-
-        #         for elabel, (r1, r2) in zip(elabels, rcoords):
-
-        #             ncoords = elements[elabel].getNodeCoordinates()
-        #             ipoints = elements[elabel].getIntegrationPoints()
-
-        #             edofs = elements[elabel].getNodeDegreesOfFreedom()
-        #             disp = dynamics.modes[edofs, :].dot(displacement[:, i]).T
-        #             element = elements[elabel].getType()
-
-        #             strain = element.getStrain(ncoords, disp, ipoints, r1, r2)
-        #             nodes[olabel].strain += strain
-
-        #         strains[i, k, :] = nodes[olabel].strain
-        #         nodes[olabel].strain[:] = 0
 
         strain_history = np.zeros((time.size, 3))
 
@@ -397,18 +373,15 @@ def main(job):
                 disp = dynamics.modes[edofs, :].dot(displacement)# .T
                 element = elements[elabel].getType()
 
-                print(disp.shape) 
-                # 1. rows of disp should contain element displacements
+                # 1. rows of disp contain element displacements
                 # 2. columns of disp should contain time steps
 
                 strain = element.getStrain(ncoords, disp, ipoints, r1, r2).T
 
-                # 1. rows of strain should contain strain components Exx, Eyy, Exy
-                # 2. columns of strain should contain time steps
+                # 1. columns of strain contain components Exx, Eyy, Exy
+                # 2. rows of strain contain time steps
 
-                print(strain.shape)
                 strain_history += strain
-                # nodes[olabel].strain += strain
 
             strains[:, k, :] = strain_history/len(nodes[olabel].links)
             strain_history[:] = 0

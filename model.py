@@ -469,7 +469,7 @@ class Matrix(abc.ABC):
     def getPartitionFF(self):
 
         fdof = list(self.model.fdof.values())
-        ff = self.full.tocsc()[:, fdof].tocsr()[fdof, :]
+        ff = self.full.tocsc()[:, fdof].tocsr()[fdof, :].tocsc()
         return ff
 
 
@@ -477,7 +477,7 @@ class Matrix(abc.ABC):
 
         fdof = list(self.model.fdof.values())
         rdof = list(self.model.rdof.values())
-        fr = self.full.tocsc()[:, rdof].tocsr()[fdof, :]
+        fr = self.full.tocsc()[:, rdof].tocsr()[fdof, :].tocsc()
         return fr
 
 
@@ -485,14 +485,14 @@ class Matrix(abc.ABC):
 
         fdof = list(self.model.fdof.values())
         rdof = list(self.model.rdof.values())
-        rf = self.full.tocsc()[:, fdof].tocsr()[rdof, :]
+        rf = self.full.tocsc()[:, fdof].tocsr()[rdof, :].tocsc()
         return rf
 
 
     def getPartitionRR(self):
 
         rdof = list(self.model.rdof.values())
-        rr = self.full.tocsc()[:, rdof].tocsr()[rdof, :]
+        rr = self.full.tocsc()[:, rdof].tocsr()[rdof, :].tocsc()
         return rr
         
         
