@@ -58,9 +58,10 @@ class Main(tk.Frame):
 
         self.model.createModelPlot()
 
+
     def createSettings(self):
         
-        self.material = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
+        # self.material = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.settings.createModelConfiguration()
 
 
@@ -83,16 +84,56 @@ class Main(tk.Frame):
         self.analysis.switchWidgets(state)
 
 
-
     def run(self):
         self.root.mainloop()
 
 
+    def saveJob(self):
+        
+        # Set job name
+        self.job.setName(self.analysis.jobWidgets['job'].get())
+
+        print('Name:', self.job.name, type(self.job.name))
+
+        # Set job model
+        selection = self.settings.modelConfiguration[0].curselection()
+        self.job.setModel(self.settings.modelConfiguration[0].get(selection))
+
+        print('Model:', self.job.model, type(self.job.model))
+
+        # Set job thickness
+        thickness = self.settings.modelConfiguration[2].get()
+        self.job.setThickness(thickness)
+
+        print('Thickness:', self.job.thickness, type(self.job.thickness))
+
+        # Set job damage
+        damage = self.settings.modelConfiguration[4].get()
+        self.job.setDamage(damage)
+
+        print('Damage:', self.job.damage, type(self.job.damage))
+
+        # Set job material
+        # This is already saved in job.material
+        print(self.job.material)
+
+        # Set job boundary conditions
+        # This is already saved in job.boundaries
+        print(self.job.boundaries)
+
+        # Set job corrosion
+
+        # Set job temperature
+
+
+    def retrieveJob(self, job):
+        pass
 
 
     def callbackHelp(self):
         
-        webbrowser.open_new(r"https://github.com/ETH-WindMil/benchmarktu1402/blob/master/IOMAC_2019.pdf")
+        link = r"https://github.com/ETH-WindMil/benchmarktu1402/blob/master/IOMAC_2019.pdf"
+        webbrowser.open_new(link)
 
 
     def callbackClose(self):
@@ -112,6 +153,11 @@ class Job:
 
     def __init__(self, name=None):
 
+        self.name = name
+        self.model = None
+        self.thickness = None
+        self.damage = None
+
         values = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.material = {'values': values, 'temperature': False}
 
@@ -128,14 +174,40 @@ class Job:
 
 
     def setName(self, name):
-
         self.name = name
+
+    def getName(self):
+        return self.name
+
+
+    def setModel(self, model):
+        self.model = model
+
+    def getModel(self):
+        return self.model
+
+
+    def setThickness(self, thickness):
+        self.thickness = thickness
+
+    def getThickness(self):
+        return self.thickness
+
+
+    def setDamage(self, damage):
+        self.damage = damage
+
+    def getDamage(self):
+        return self.damage
 
 
     def setMaterial(self, values, temperature):
 
         self.material['values'] = values
         self.material['temperature'] = temperature
+
+    def getMaterial(self):
+        pass
 
 
     def setBoundaries(self, values1, values2, values3, temperature, identical):
@@ -146,17 +218,27 @@ class Job:
         self.boundaries['temperature'] = temperature
         self.boundaries['identical'] = identical
 
+    def getBoundaries(self):
+        pass
+
 
     def setCorrosion(self, values, spatial):
 
         self.corrosion['values'] = values
-        self.corrosion['temperature'] = temperature
+        self.corrosion['spatial'] = spatial
+
+    def getCorrosion(self):
+        pass
 
 
     def setTemperature(self, values, spatial):
 
         self.temperature['values'] = values
         self.temperature['spatial'] = spatial
+
+    def getTemperature(self):
+        pass
+
 
 
 
@@ -752,9 +834,9 @@ class BoundaryConditions:
         # Save material data into the current job
         temp = self.widgets['temp'].get()
         identical = self.widgets['identicalBCs'].get()
-        print('1', temp, identical)
+        # print('1', temp, identical)
         self.parent.job.setBoundaries(values1, values2, values3, temp, identical)
-        print('2', self.parent.job.boundaries['temperature'], self.parent.job.boundaries['identical'])
+        # print('2', self.parent.job.boundaries['temperature'], self.parent.job.boundaries['identical'])
 
         # Switch parent widgets back to normal state
         self.parent.switchWidgets('normal')
@@ -823,15 +905,25 @@ class Corrosion:
                 entry = tk.Entry(labelFrame, width=wds[j], justify=tk.RIGHT, bd=1)
                 entry.grid(row=i+2, column=j, padx=px, pady=py, sticky=tk.N+tk.W+tk.E)
                 
-                if (i, j) == (0, 0):
-                    entry.insert(tk.END, '10')
+                # if (i, j) == (0, 0):
+                #     entry.insert(tk.END, '10')
 
-                if (i, j) == (0, 1):
-                    entry.insert(tk.END, '0.5')
+                # if (i, j) == (0, 1):
+                #     entry.insert(tk.END, '0.5')
 
                 columns.append(entry)
             rows.append(columns)
 
+        
+        # Set checkbox status, according to job definition
+        if self.parent.job.corrosion['spatial']:
+            check.select()
+
+        # Insert table values, from job definition
+        for (i, j) in self.parent.job.corrosion['values'].keys():
+            rows[i][j].insert(tk.END, self.parent.job.corrosion['values'][(i, j)])
+
+        # Save widgets in class attributes
         self.widgets = {'cells':rows, 'space':space}
         self.callbackSpatialDependency()
 
@@ -867,6 +959,18 @@ class Corrosion:
 
         # Check input variables
 
+        # Store non-zero table data into a dictionary
+        values = {}
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+                if value != '':
+                    values[(i, j)] = value
+
+        # Save material data into the current job
+        self.parent.job.setCorrosion(values, self.widgets['space'].get())
+
+        # Switch parent widgets back to normal state
         self.parent.switchWidgets('normal')
         self.root.destroy()
 
@@ -938,15 +1042,24 @@ class Temperature:
                 entry = tk.Entry(labelFrame, width=wds[j], justify=tk.RIGHT, bd=1)
                 entry.grid(row=i+2, column=j, padx=px, pady=py, sticky=tk.N+tk.W+tk.E)
                 
-                if (i, j) == (0, 0):
-                    entry.insert(tk.END, '10')
+                # if (i, j) == (0, 0):
+                #     entry.insert(tk.END, '10')
 
-                if (i, j) == (0, 1):
-                    entry.insert(tk.END, '0.5')
+                # if (i, j) == (0, 1):
+                #     entry.insert(tk.END, '0.5')
 
                 columns.append(entry)
             rows.append(columns)
 
+        # Set checkbox status, according to job definition
+        if self.parent.job.temperature['spatial']:
+            check.select()
+
+        # Insert table values, from job definition
+        for (i, j) in self.parent.job.temperature['values'].keys():
+            rows[i][j].insert(tk.END, self.parent.job.temperature['values'][(i, j)])
+
+        # Save widgets in class attributes
         self.widgets = {'cells':rows, 'space':space}
         self.callbackSpatialDependency()
 
@@ -981,6 +1094,18 @@ class Temperature:
 
         # Check input variables
 
+        # Store non-zero table data into a dictionary
+        values = {}
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+                if value != '':
+                    values[(i, j)] = value
+
+        # Save material data into the current job
+        self.parent.job.setTemperature(values, self.widgets['space'].get())
+
+        # Switch parent widgets back to normal state
         self.parent.switchWidgets('normal')
         self.root.destroy()
 
@@ -1367,6 +1492,8 @@ class Analysis:
 
         print(job, type(job))
 
+        # Check if file name contains any invalid characters
+
         specials = ['!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', 
                 ',', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']',
                 '^', '{', '|', '}', '~']
@@ -1380,6 +1507,8 @@ class Analysis:
                 messagebox.showwarning('Warning', message)
                 return
 
+        # Check if job name already exists
+
         if job in jobs:
             message = 'Job name already exists!'
             messagebox.showwarning('Warning', message)
@@ -1389,7 +1518,13 @@ class Analysis:
         message = 'Job "{}" saved.\n'.format(job)
         self.main.scenario.printMessage(message)
 
-        # 4. Save job to joblist and model specifics
+        # Save job settings to the current job instance
+
+        # self.main.job.setName(job)
+        self.main.saveJob()
+
+
+        # Save job to the list of jobs
 
         self.main.scenario.jobs[job] = copy.deepcopy(self.main.job)
 
