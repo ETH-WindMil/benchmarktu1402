@@ -113,17 +113,23 @@ class Main(tk.Frame):
 
         print('Damage:', self.job.damage, type(self.job.damage))
 
-        # Set job material
-        # This is already saved in job.material
-        print(self.job.material)
+        # Job material, boundary conditions, corrosion and temperature
+        # are already set once the corresponding widgets are closed.
+        
+        # Set type of analysis
+        print(self.analysis.analysisTypeVariables['Analysis'].get())
 
-        # Set job boundary conditions
-        # This is already saved in job.boundaries
-        print(self.job.boundaries)
+        # Set settings for modal analysis
+        print(self.analysis.modalSettings[1].get()) # Number of modes
+        print(self.analysis.modalSettingsVariables['Modes'].get())
+        print(self.analysis.modalSettingsVariables['Normalization'].get())
 
-        # Set job corrosion
-
-        # Set job temperature
+        # Set settings fro dynamic analysis
+        print(self.analysis.historySettings[2].get())
+        print(self.analysis.historySettings[4].get())
+        print(self.analysis.historySettings[6].get())
+        print(self.analysis.historySettings[8].get())
+        print(self.analysis.historySettings[10].get())
 
 
     def retrieveJob(self, job):
@@ -715,15 +721,6 @@ class BoundaryConditions:
 
                     entry = tk.Entry(tab, width=wds[j], justify=tk.RIGHT, bd=1)
                     entry.grid(row=i+2, column=j, padx=px, pady=py, sticky=tk.N+tk.W)
-                    
-                    # if (i, j) == (0, 0):
-                    #     entry.insert(tk.END, '200000000000')
-
-                    # if (i, j) == (0, 1):
-                    #     entry.insert(tk.END, '200000000000')
-
-                    # if (i, j) == (0, 2):
-                    #     entry.insert(tk.END, '25')
 
                     columns.append(entry)
                 rows.append(columns)
@@ -904,12 +901,6 @@ class Corrosion:
 
                 entry = tk.Entry(labelFrame, width=wds[j], justify=tk.RIGHT, bd=1)
                 entry.grid(row=i+2, column=j, padx=px, pady=py, sticky=tk.N+tk.W+tk.E)
-                
-                # if (i, j) == (0, 0):
-                #     entry.insert(tk.END, '10')
-
-                # if (i, j) == (0, 1):
-                #     entry.insert(tk.END, '0.5')
 
                 columns.append(entry)
             rows.append(columns)
@@ -1041,12 +1032,6 @@ class Temperature:
 
                 entry = tk.Entry(labelFrame, width=wds[j], justify=tk.RIGHT, bd=1)
                 entry.grid(row=i+2, column=j, padx=px, pady=py, sticky=tk.N+tk.W+tk.E)
-                
-                # if (i, j) == (0, 0):
-                #     entry.insert(tk.END, '10')
-
-                # if (i, j) == (0, 1):
-                #     entry.insert(tk.END, '0.5')
 
                 columns.append(entry)
             rows.append(columns)
