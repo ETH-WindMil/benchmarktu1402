@@ -82,7 +82,7 @@ Depending on the type of analysis, the following files are further generated for
 
 ## How to Cite
 
-Tatsis, K. Chatzi, E. (2019) "A numerical benchmark for system identification under operational and environmental variability", Proceedings of the 7th International Operational Modal Analysis Conference (IOMAC).
+Tatsis, K. and Chatzi, E. (2019) "A numerical benchmark for system identification under operational and environmental variability", Proceedings of the 7th International Operational Modal Analysis Conference (IOMAC).
 
 ## Found a Bug?
 
