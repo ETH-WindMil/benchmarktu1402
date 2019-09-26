@@ -166,8 +166,6 @@ class Quadrilateral(abc.ABC):
         strain = self.getShapeFunctions(r1/sfactor, r2/sfactor).dot(istrain)
         strain = strain.squeeze()
 
-        print('Strain shape:', strain.shape)
-
         return strain
 
 
