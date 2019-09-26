@@ -121,7 +121,7 @@ class Main(tk.Frame):
 
         # Set settings for modal analysis
         print(self.analysis.modalSettings[1].get()) # Number of modes
-        print(self.analysis.modalSettingsVariables['Modes'].get())
+        print(self.analysis.modalSettingsVariables['Modes'].get()) # Number of modes
         print(self.analysis.modalSettingsVariables['Normalization'].get())
 
         # Set settings fro dynamic analysis
@@ -160,9 +160,9 @@ class Job:
     def __init__(self, name=None):
 
         self.name = name
-        self.model = None
-        self.thickness = None
-        self.damage = None
+        self.model = 0
+        self.thickness = 0.1
+        self.damage = 10
 
         values = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.material = {'values': values, 'temperature': False}
@@ -176,7 +176,13 @@ class Job:
 
         values = {(0, 0): '10', (0, 1):'0.5'}
         self.temperature = {'values': values, 'spatial': False}
-        self.jobs = {}
+
+        self.analysis = 'Modal'
+
+        self.modalSettings = {'Modes': 5, 'Normalization': 'Mass'} 
+
+        self.timeHistorySettings = {'Alpha': 0.005, 'Beta': 0.005, 
+                'Period': 10, 'Incerement': 0.1, 'Load case': 1}
 
 
     def setName(self, name):
@@ -469,8 +475,16 @@ class Model:
         frame.grid(row=self.row, column=self.column, columnspan=2, 
                 padx=(5, 10), pady=(10, 5), sticky=tk.N+tk.W+tk.E+tk.S)
 
+        files = {0: './pictures/healthy.jpg',
+                 1: './pictures/damage_1.jpg',
+                 2: './pictures/damage_2.jpg',
+                 3: './pictures/damage_3.jpg',
+                 4: './pictures/damage_4.jpg',
+                 5: './pictures/damage_5.jpg',
+                 6: './pictures/damage_6.jpg'}
+
         label = tk.Label(frame)
-        label.img = ImageTk.PhotoImage(file='./pictures/healthy.jpg', master=frame)
+        label.img = ImageTk.PhotoImage(file=files[self.main.job.model], master=frame)
         label.config(image=label.img)
         label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W+tk.E+tk.S+tk.N)
 
@@ -1138,7 +1152,7 @@ class Settings:
         listBox.insert(6, 'Damaged state 6')
         listBox['selectmode'] = tk.SINGLE
         listBox.configure(exportselection=False)
-        listBox.select_set(0)
+        listBox.select_set(self.main.job.model)
         listBox.grid(row=0, column=0, padx=10, pady=(10, 10), columnspan=2,
                 sticky=tk.N+tk.W+tk.E+tk.S)
         self.modelConfiguration.append(listBox)
@@ -1156,24 +1170,20 @@ class Settings:
         self.modelConfiguration.append(label)
 
         thickness = tk.Entry(frame, width=12)
-        thickness.insert(tk.END, '0.1')
-        thickness.grid(row=2, column=0, padx=(10, 10), pady=(0, 10), 
-                sticky=tk.W+tk.N+tk.E)
+        thickness.insert(tk.END, self.main.job.thickness)
+        thickness.grid(row=2, column=0, padx=(10, 10), pady=(0, 10), sticky=tk.W+tk.N+tk.E)
         self.modelConfiguration.append(thickness)
 
         # Label and entry for damage
 
-        label = tk.Label(frame, text='Damage [%]', state='disable', 
-        		anchor=tk.W)
-        label.grid(row=1, column=1, padx=(7, 0), pady=(5, 0), 
-                sticky=tk.W+tk.N+tk.E)
+        label = tk.Label(frame, text='Damage [%]', state='disable', anchor=tk.W)
+        label.grid(row=1, column=1, padx=(7, 0), pady=(5, 0), sticky=tk.W+tk.N+tk.E)
         self.modelConfiguration.append(label)
 
         damage = tk.Entry(frame, width=12)
-        damage.insert(tk.END, '10')
+        damage.insert(tk.END, self.main.job.damage)
         damage.configure(state='disable')
-        damage.grid(row=2, column=1, padx=(10, 10), pady=(0, 10), 
-                sticky=tk.W+tk.N+tk.E)
+        damage.grid(row=2, column=1, padx=(10, 10), pady=(0, 10), sticky=tk.W+tk.N+tk.E)
         self.modelConfiguration.append(damage)
 
 
@@ -1182,26 +1192,22 @@ class Settings:
         #  self.material = Material(self.main)
         material = tk.Button(frame, text='Material properties',
                 command=lambda : Material(self.main))
-        material.grid(row=3, column=0, padx=10, pady=5, columnspan=2,
-                sticky=tk.N+tk.W+tk.E)
+        material.grid(row=3, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(material)
 
         boundary = tk.Button(frame, text='Boundary conditions',
                 command=lambda : BoundaryConditions(self.main))
-        boundary.grid(row=4, column=0, padx=10, pady=5, columnspan=2,
-                sticky=tk.N+tk.W+tk.E)
+        boundary.grid(row=4, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(boundary)
 
         corrosion  =tk.Button(frame, text='Corrosion wastage',
                 command=lambda : Corrosion(self.main))
-        corrosion.grid(row=5, column=0, padx=10, pady=5, columnspan=2,
-                sticky=tk.N+tk.W+tk.E)
+        corrosion.grid(row=5, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(corrosion)
 
         temperature = tk.Button(frame, text='Environmental temperature',
                 command=lambda : Temperature(self.main), width=self.width-15)
-        temperature.grid(row=6, column=0, padx=10, pady=(5, 10), columnspan=2,
-                sticky=tk.N+tk.W+tk.E)
+        temperature.grid(row=6, column=0, padx=10, pady=(5, 10), columnspan=2, sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(temperature)
 
 
@@ -1266,10 +1272,14 @@ class Analysis:
         history['variable'] = self.analysisTypeVariables['Analysis']
         history['value'] = 'Time history'
         history['state'] = tk.ACTIVE
-        history.deselect()
+        # history.deselect()
         history['command'] = self.callbackAnalysisType
         history.grid(row=1, column=0, padx=20, pady=(0, 5), sticky=tk.N+tk.W)
         self.analysisType.append(history)
+
+        if self.main.job.analysis == 'Time history':
+            history.select()
+
 
 
     def switchAnalysisType(self, state):
@@ -1315,7 +1325,7 @@ class Analysis:
 
         entry = tk.Entry(frame, width=6)
         entry['textvariable'] = self.modalSettingsVariables['Modes']
-        entry.insert(tk.END, '5')
+        entry.insert(tk.END, self.main.job.modalSettings['Modes'])
         entry.grid(row=0, column=1, padx=(0, 5), sticky=tk.W)
         self.modalSettings.append(entry)
 
@@ -1330,8 +1340,7 @@ class Analysis:
         mass['variable'] = self.modalSettingsVariables['Normalization']
         mass['state'] = tk.ACTIVE
         mass.select()
-        mass.grid(row=3, column=0, padx=20, pady=(0, 0), columnspan=2, 
-                sticky=tk.N+tk.W)
+        mass.grid(row=3, column=0, padx=20, pady=(0, 0), columnspan=2, sticky=tk.N+tk.W)
         self.modalSettings.append(mass)
 
         disp = tk.Radiobutton(frame, text=' Displacement')
@@ -1340,9 +1349,19 @@ class Analysis:
         disp['anchor'] = tk.W
         disp['variable'] = self.modalSettingsVariables['Normalization']
         disp['value'] = 2
-        disp.grid(row=4, column=0, padx=20, pady=(0, 5), columnspan=2, 
-                sticky=tk.N+tk.W)
+        disp.grid(row=4, column=0, padx=20, pady=(0, 5), columnspan=2, sticky=tk.N+tk.W)
         self.modalSettings.append(disp)
+
+        # Adjust radio button selection according to the job definition
+
+        if self.main.job.modalSettings['Normalization'] == 'Displacement':
+            disp.select()
+
+        # Adjust modal analysis widgets according to the job definition
+
+        if self.main.job.analysis == 'Time history':
+            self.switchModalSettings('disable')
+
 
 
     def switchModalSettings(self, state):
@@ -1382,7 +1401,7 @@ class Analysis:
         self.historySettings.append(label)
 
         alpha = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var1'])
-        alpha.insert(tk.END, 0.005)
+        alpha.insert(tk.END, self.main.job.timeHistorySettings['Alpha'])
         alpha.grid(row=2, column=0, padx=10, pady=(0, 2), sticky=tk.W+tk.N)
         self.historySettings.append(alpha)
 
@@ -1391,7 +1410,7 @@ class Analysis:
         self.historySettings.append(label)
 
         beta = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var2'])
-        beta.insert(tk.END, 0.005)
+        beta.insert(tk.END, self.main.job.timeHistorySettings['Alpha'])
         beta.grid(row=2, column=1, padx=10, pady=(0, 2), sticky=tk.W+tk.N)
         self.historySettings.append(beta)
 
@@ -1400,7 +1419,7 @@ class Analysis:
         self.historySettings.append(label)
 
         period = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var3'])
-        period.insert(tk.END, 10)
+        period.insert(tk.END, self.main.job.timeHistorySettings['Period'])
         period.grid(row=4, column=0, padx=(10, 12), pady=(0, 2), sticky=tk.W+tk.N)
         self.historySettings.append(period)
 
@@ -1408,10 +1427,10 @@ class Analysis:
         label.grid(row=3, column=1, padx=(7, 10), pady=(3, 2), sticky=tk.W+tk.N)
         self.historySettings.append(label)
 
-        period = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var4'])
-        period.insert(tk.END, 10)
-        period.grid(row=4, column=1, padx=10, pady=(0, 2), sticky=tk.W+tk.N)        
-        self.historySettings.append(period)
+        incerement = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var4'])
+        incerement.insert(tk.END, self.main.job.timeHistorySettings['Incerement'])
+        incerement.grid(row=4, column=1, padx=10, pady=(0, 2), sticky=tk.W+tk.N)        
+        self.historySettings.append(incerement)
 
         label = tk.Label(frame, text='Load case', anchor=tk.W)
         label.grid(row=5, column=0, padx=10, pady=(3, 2), sticky=tk.W+tk.N)
@@ -1420,12 +1439,15 @@ class Analysis:
 
         case = ttk.Combobox(frame, values=['Load case 1', 'Load case 2', 
                 'Load case 3'], state='readonly')
-        case.current(0)
+        case.current(self.main.job.timeHistorySettings['Load case'])
         case.grid(row=6, column=0, columnspan=2, padx=10, pady=(0, 10), 
                 sticky=tk.W+tk.N+tk.E)
         self.historySettings.append(case)
 
-        self.switchTimeHistorySettings('disable')
+        # Adjust modal analysis widgets according to the job definition
+
+        if self.main.job.analysis == 'Modal':
+            self.switchTimeHistorySettings('disable')
 
 
     def switchTimeHistorySettings(self, state):
