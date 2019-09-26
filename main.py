@@ -401,7 +401,7 @@ def main(job):
                 # 1. rows of disp should contain element displacements
                 # 2. columns of disp should contain time steps
 
-                strain = element.getStrain(ncoords, disp, ipoints, r1, r2)[0].T
+                strain = element.getStrain(ncoords, disp, ipoints, r1, r2).T
 
                 # 1. rows of strain should contain strain components Exx, Eyy, Exy
                 # 2. columns of strain should contain time steps
@@ -457,7 +457,7 @@ def main(job):
 
         # Extract displacements at output degrees of freedom
 
-        displacements = static.displacement[odofs][np.newaxis]
+        displacements = static.displacement[odofs]# [np.newaxis]
 
         # Extract strains at output nodes
 
