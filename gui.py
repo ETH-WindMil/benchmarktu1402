@@ -110,7 +110,8 @@ class Main(tk.Frame):
 class Job:
 
 
-    def __init__(self):
+    def __init__(self, name=None):
+
         values = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.material = {'values': values, 'temperature': False}
 
@@ -124,6 +125,11 @@ class Job:
         values = {(0, 0): '10', (0, 1):'0.5'}
         self.temperature = {'values': values, 'spatial': False}
         self.jobs = {}
+
+
+    def setName(self, name):
+
+        self.name = name
 
 
     def setMaterial(self, values, temperature):
@@ -1361,19 +1367,35 @@ class Analysis:
 
         print(job, type(job))
 
+        specials = ['!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', 
+                ',', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']',
+                '^', '{', '|', '}', '~']
+
+        for special in specials:
+            if special in job:
+                special = ' '.join(specials)
+                message = 'The job name contains invalid characters.\n\n'
+                message += 'The following characters are not allowed: {}'
+                message = message.format(special)
+                messagebox.showwarning('Warning', message)
+                return
+
         if job in jobs:
             message = 'Job name already exists!'
             messagebox.showwarning('Warning', message)
-        else:
-            listbox.insert(len(jobs), job)
-            self.main.scenario.printMessage('Job "{}" saved.\n'.format(job))
+            return
 
-        self.main.scenario.widgets['listbox'].see(tk.END)
-        self.main.scenario.switchButtons()
+        listbox.insert(len(jobs), job)
+        message = 'Job "{}" saved.\n'.format(job)
+        self.main.scenario.printMessage(message)
 
         # 4. Save job to joblist and model specifics
 
         self.main.scenario.jobs[job] = copy.deepcopy(self.main.job)
+
+
+        self.main.scenario.widgets['listbox'].see(tk.END)
+        self.main.scenario.switchButtons()
 
 
     def switchJobWidgets(self, state):
