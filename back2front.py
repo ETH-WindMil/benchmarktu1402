@@ -341,7 +341,52 @@ def convert(frontJob):
 
     # Convert boundary conditions data
 
-    # backJob.setBoundaries()
+    frontBoundaries = frontJob.getBoundaries()
+
+    if frontBoundaries['identical'] == True:
+
+        if frontBoundaries['temperature'] == False:
+            backBoundaries = np.zeros((1, 3))
+
+            for index in [(0, 0), (0, 1)]:
+                backBoundaries[index] = float(frontBoundaries['values1'][index])
+
+        else:   # this case does not work
+            rows = np.max([item[0] for item in frontBoundaries['values1'].keys()])
+            cols = np.max([item[1] for item in frontBoundaries['values1'].keys()])
+            backBoundaries = np.zeros((rows, cols))
+
+            for index, value in frontBoundaries['values1'].items():
+                backBoundaries[index] = float(value)
+
+        backBoundary1 = backBoundary2 = backBoundary3 = backBoundaries
+
+    else:
+        
+        if frontBoundaries['temperature'] == True:
+            backBoundaries = [np.zeros((1, 3)), np.zeros((1, 3)), np.zeros((1, 3))]
+
+            for j, key in zip(range(3), ['values1', 'values2', 'values3']):
+                for index in [(0, 0), (0, 1)]:
+                    value = float(frontBoundaries[key][index])
+                    backBoundaries[j][index] = value
+
+        else: # This case does not work
+            backBoundaries = []
+
+            for j, key in zip(range(3), ['values1', 'values2', 'values3']):
+                rows = np.max([item[0] for item in frontBoundaries[key].keys()])
+                cols = np.max([item[1] for item in frontBoundaries[key].keys()])
+                backBoundaries.append(np.zeros((rows, cols)))
+
+                for index, value in frontBoundaries[key].items():
+                    backBoundaries[j][index] = float(value)
+
+        backBoundary1, backBoundary2, backBoundary3 = backBoundaries
+
+
+    backJob.setBoundaries(backBoundary1, backBoundary2, backBoundary3)
+    print('backBoundaries', backBoundary1, backBoundary2, backBoundary3)
 
 
     # Convert corrosion wastage data
