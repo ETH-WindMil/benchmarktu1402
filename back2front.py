@@ -1,26 +1,7 @@
 import numpy as np
 
 
-def convert(job):
-
-    """
-    Convert backend job to frontend job.
-
-    Parameters
-    ----------
-    job: gui.Job
-        The frontend job instance.
-
-    Returns
-    -------
-    job: Job
-        The backend job instance.
-    """
-
-    pass
-
-
-class Job:
+class BackendJob:
 
     def __init__(self, name):
         # Specify default job name
@@ -290,15 +271,15 @@ class Job:
         Parameters
         ----------
         alpha: float, positive
-            ...
+            The alpha coefficient of Rayleigh damping.
         beta: float, positive
-            ...
+            The beta coefficient of Rayleigh damping.
         period: float, positive
-            ...
+            The total simulation period.
         increment: float, positive
-            ...
+            The time increment.
         lcase: {0, 1, 2}
-            ...
+            The load case index.
         """
 
         self._timeHistorySettings = {}
@@ -310,3 +291,100 @@ class Job:
 
     def getTimeHistorySettings(self):
         return self._timeHistorySettings
+
+
+
+def convert(frontJob):
+
+    """
+    Convert backend job to frontend job.
+
+    Parameters
+    ----------
+    backJob: gui.Job
+        The frontend job instance.
+
+    Returns
+    -------
+    frontJob: Job
+        The backend job instance.
+    """
+
+    backJob = BackendJob(frontJob.getName())
+    backJob.setModel(frontJob.getModel())
+
+    backJob.setThickness(frontJob.getThickness())
+    backJob.setDamage(frontJob.getDamage())
+
+
+    # Convert material properties data
+
+    frontMaterial = frontJob.getMaterial()
+
+    if frontMaterial['temperature'] == False:
+        backMaterial = np.zeros((1, 3))
+
+        for index in [(0, 0), (0, 1)]:
+            backMaterial[index] = float(frontMaterial['values'][index])
+
+    else:
+        rows = np.max([item[0] for item in frontMaterial['values'].keys()])
+        cols = np.max([item[1] for item in frontMaterial['values'].keys()])
+        backMaterial = np.zeros((rows, cols))
+
+        for index, value in frontMaterial['values'].items():
+            backMaterial[index] = float(value)
+
+    backJob.setMaterial(backMaterial)
+    print('backmaterial', backMaterial)
+
+
+    # Convert boundary conditions data
+
+    # backJob.setBoundaries()
+
+
+    # Convert corrosion wastage data
+
+    frontCorrosion = frontJob.getCorrosion()
+
+    if frontCorrosion['spatial'] == False:
+        backCorrosion = np.zeros((1, 2))
+        backCorrosion[0, 1] = float(frontCorrosion['values'][(0, 0)])
+
+    else:
+        rows = np.max([item[0] for item in frontCorrosion['values'].keys()])
+        cols = np.max([item[1] for item in frontCorrosion['values'].keys()])
+        backCorrosion = np.zeros((rows, cols))
+
+        for index, value in frontCorrosion.items():
+            backCorrosion[index] = float(value)
+
+    backJob.setCorrosion(backCorrosion)
+    print('backcorrosion', backCorrosion)
+
+
+    # Convert temperature data
+
+    frontTemperature = frontJob.getTemperature()
+
+    if frontTemperature['spatial'] == False:
+        backTemperature = np.zeros((1, 2))
+        backTemperature[0, 1] = float(frontTemperature['values'][(0, 0)])
+
+    else:
+        rows = np.max([item[0] for item in frontTemperature['values'].keys()])
+        cols = np.max([item[1] for item in frontTemperature['values'].keys()])
+
+        for index, value in frontTemperature.items():
+            backTemperature[index] = float(value)
+
+    backJob.setTemperature(backTemperature)
+    print('backtemperature', backTemperature)
+
+
+    # Convert analysis type and settings
+
+    backJob.setAnalysis(frontJob.getAnalysis())
+    backJob.setModalSettings(*frontJob.getModalSettings().values())
+    backJob.setTimeHistorySettings(*frontJob.getTimeHistorySettings().values())
