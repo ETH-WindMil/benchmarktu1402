@@ -18,6 +18,7 @@ from matplotlib.figure import Figure
 from PIL import Image, ImageTk
 
 import main
+import back2front
 
 
 __author__ = 'Konstantinos Tatsis'
@@ -453,6 +454,8 @@ class Scenario:
     def callbackRun(self):
 
         print('Submit callback function to be written.')
+
+        j2 = back2front.convert(self.main.job)
 
         # Run each job separately and print message
 
