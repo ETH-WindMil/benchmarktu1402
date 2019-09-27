@@ -7,9 +7,10 @@ import analysis
 import model
 import material
 
+import back2front
+
 import numpy as np
 import itertools as it
-
 
 import matplotlib.pyplot as plt
 
@@ -18,54 +19,74 @@ def main(job):
 
     #  Read job object
 
-    jmodel = 'Damaged state 6'
-    jthickness = 0.1
-    jdamage = 0     # Percentage of stiffness reduction in the damaged area
+    # jobName = 'Job-1'
+    # jobModel = 0
+    # jobThickness = 0.1
+    # jobDamage = 0     # Percentage of stiffness reduction in the damaged area
 
-    jmaterial = np.array([
-            [1.8e11, 0.3, 10]]) # E, n, temperature
+    # jobMaterial = np.array([
+    #         [1.8e11, 0.3, 10]]) # E, n, temperature
 
-    jboundary1 = np.array([
-            [1e15, 1e11, 20]]) # kx, ky, temperature
+    # jboundary1 = np.array([
+    #         [1e15, 1e11, 20]]) # kx, ky, temperature
 
-    jboundary2 = np.array([
-            [1e15, 1e11, 20]]) # kx, ky, temperature
+    # jboundary2 = np.array([
+    #         [1e15, 1e11, 20]]) # kx, ky, temperature
 
-    jboundary3 = np.array([
-            [1e15, 1e11, 20]]) # kx, ky, temperature
+    # jboundary3 = np.array([
+    #         [1e15, 1e11, 20]]) # kx, ky, temperature
 
-    jwastage = np.array([
-            [0.0, 0.5]]) # Wastage, x / length
+    # jobWastage = np.array([
+    #         [0.0, 0.5]]) # Wastage, x / length
 
-    jtemperature = np.array([
-            [10, 0.5]]) # temperature, x / length
+    # jobTemperature = np.array([
+    #         [10, 0.5]]) # temperature, x / length
 
-    # janalysis = 'Time history'
-    janalysis = 'Modal'
-    jsettings = {'modes': 5, 'normalization': 'Mass'}
+    # jobAnalysis = 'Time history'
+    # jobAnalysis = 'Modal'
+    # jsettings = {'Modes': 5, 'Normalization': 'Mass'}
 
-    loadCase = '2'              # 1, 2, 3
-    alpha, beta = 1e-5, 1e-5    # Rayleigh damping coefficients
-    period = 20                 # Simulation period
-    increment = 0.05             # Time increment
-    jname = 'Job-1'             # job name
+    # lcase = 0                # 0, 1, 2
+    # alpha, beta = 1e-5, 1e-5    # Rayleigh damping coefficients
+    # period = 20                 # Simulation period
+    # increment = 0.05             # Time increment
+
+
+    jobName = job.getName()
+    jobModel = job.getModel()
+
+    jobThickness = job.getThickness()
+    jobDamage = job.getDamage()
+
+    jobMaterial = job.getMaterial()
+    jobBoundary1, jobBoundary2, jobBoundary3 = job.getBoundaries()
+    jobWastage = job.getCorrosion()
+    jobTemperature = job.getTemperature()
+
+    jobAnalysis = job.getAnalysis()
+
+
+    if jobAnalysis == 'Modal':
+        modes, normalization = job.getModalSettings().values()
+    else:
+        alpha, beta, period, increment, lcase = job.getTimeHistorySettings().values()
 
 
     #  Define element labels of damaged areas
 
-    if jmodel == 'Healthy state':
+    if jobModel == 0:     # 'Healthy state'
         damagedElements = []
-    elif jmodel == 'Damaged state 1':
+    elif jobModel == 1:   # 'Damaged state 1'
         damagedElements = [49*6]
-    elif jmodel == 'Damaged state 2':
+    elif jobModel == 2:   # 'Damaged state 2'
         damagedElements = [49*6, 49*6+1]
-    elif jmodel == 'Damaged state 3':
+    elif jobModel == 3:   # 'Damaged state 3'
         damagedElements = [49*6, 49*6+1, 49*6+2]
-    elif jmodel == 'Damaged state 4':
+    elif jobModel == 4:   # 'Damaged state 4'
         damagedElements = [100*6+5]
-    elif jmodel == 'Damaged state 5':
+    elif jobModel == 5:   # 'Damaged state 5'
         damagedElements = [100*6+5, 100*6+4]
-    elif jmodel == 'Damaged state 6':
+    elif jobModel == 6:   # 'Damaged state 6'
         damagedElements = [100*6+5, 100*6+4, 100*6+3]
 
 
@@ -134,16 +155,16 @@ def main(job):
 
         #  Interpolate temperature at gauss points
 
-        temperature = np.interp(xi, jtemperature[:, 1]*length, jtemperature[:, 0])
+        temperature = np.interp(xi, jobTemperature[:, 1]*length, jobTemperature[:, 0])
 
         #  Calculate stiffnes reduction
 
-        reduction = jdamage if i in damagedElements else 0
+        reduction = jobDamage if i in damagedElements else 0
 
         #  Define material properties for each integration point
 
-        E = np.interp(xi, jmaterial[:, 2], jmaterial[:, 0])*(1-reduction)
-        n = np.interp(xi, jmaterial[:, 2], jmaterial[:, 1])
+        E = np.interp(xi, jobMaterial[:, 2], jobMaterial[:, 0])*(1-reduction)
+        n = np.interp(xi, jobMaterial[:, 2], jobMaterial[:, 1])
         materials = []
 
         for k in range(len(xi)):
@@ -151,8 +172,8 @@ def main(job):
 
         #  Interpolate thickness at gauss points
 
-        wastage = np.interp(xi, jwastage[:, 1]*length, jwastage[:, 0])
-        thickness = jthickness*(np.ones(len(xi))-wastage)
+        wastage = np.interp(xi, jobWastage[:, 1]*length, jobWastage[:, 0])
+        thickness = jobThickness*(np.ones(len(xi))-wastage)
         thickness = np.ones(9)*0.5
 
         #  Define elements and modify damaged ones
@@ -166,20 +187,20 @@ def main(job):
 
     # Interpolate temperature at boundary locations
 
-    temp1 = np.interp(0, jtemperature[:, 1]*length, jtemperature[:, 0])
-    temp2 = np.interp(length/2, jtemperature[:, 1]*length, jtemperature[:, 0])
-    temp3 = np.interp(length, jtemperature[:, 1]*length, jtemperature[:, 0])
+    temp1 = np.interp(0, jobTemperature[:, 1]*length, jobTemperature[:, 0])
+    temp2 = np.interp(length/2, jobTemperature[:, 1]*length, jobTemperature[:, 0])
+    temp3 = np.interp(length, jobTemperature[:, 1]*length, jobTemperature[:, 0])
 
     # Interpolate boundary values at temperature value
 
-    kx1 = np.interp(temp1, jboundary1[:, 2], jboundary1[:, 0])
-    ky1 = np.interp(temp1, jboundary1[:, 2], jboundary1[:, 1])
+    kx1 = np.interp(temp1, jobBoundary1[:, 2], jobBoundary1[:, 0])
+    ky1 = np.interp(temp1, jobBoundary1[:, 2], jobBoundary1[:, 1])
 
-    kx2 = np.interp(temp2, jboundary2[:, 2], jboundary2[:, 0])
-    ky2 = np.interp(temp2, jboundary2[:, 2], jboundary2[:, 1])
+    kx2 = np.interp(temp2, jobBoundary2[:, 2], jobBoundary2[:, 0])
+    ky2 = np.interp(temp2, jobBoundary2[:, 2], jobBoundary2[:, 1])
 
-    kx3 = np.interp(temp3, jboundary3[:, 2], jboundary3[:, 0])
-    ky3 = np.interp(temp3, jboundary3[:, 2], jboundary3[:, 1])
+    kx3 = np.interp(temp3, jobBoundary3[:, 2], jobBoundary3[:, 0])
+    ky3 = np.interp(temp3, jobBoundary3[:, 2], jobBoundary3[:, 1])
 
     #  Apply boundary conditions
 
@@ -262,13 +283,13 @@ def main(job):
 
     #  Run analysis
 
-    if janalysis == 'Modal':
+    if jobAnalysis == 'Modal':
 
         # Submit modal analysis
 
         modal = analysis.Modal(model1)
-        modal.setNumberOfEigenvalues(jsettings['modes'])
-        modal.setNormalizationMethod(jsettings['normalization'])
+        modal.setNumberOfEigenvalues(modes)
+        modal.setNormalizationMethod(normalization)
         modal.submit()
 
         # Extract mode shapes at output locations
@@ -279,19 +300,19 @@ def main(job):
         #  Save results
 
         sys.stdout.write('Writting output files ...\n')
-        np.savetxt(jname+'_frequencies.dat', frequencies)
-        np.savetxt(jname+'_modes.dat', modes, header=labels)
+        np.savetxt(jobName+'_frequencies.dat', frequencies)
+        np.savetxt(jobName+'_modes.dat', modes, header=labels)
 
-    elif janalysis == 'Time history':
+    elif jobAnalysis == 'Time history':
 
         model1.setDampingCoefficients(alpha, beta)
 
         # Select load case
 
-        if loadCase == '1':
+        if lcase == 0:
             nlabels = np.arange(nel_y+1, (nel_x+1)*(nel_y+1) ,nel_y+1)
-            loadCase = np.loadtxt('Load_case_1.dat', skiprows=1)
-            velocity, load = loadCase[0], loadCase[1]
+            lcase = np.loadtxt('Load_case_1.dat', skiprows=1)
+            velocity, load = lcase[0], lcase[1]
 
             for j, nlabel in enumerate(nlabels):
 
@@ -312,20 +333,20 @@ def main(job):
 
                 model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
 
-        elif loadCase == '2':
+        elif lcase == 1:
             nlabel = 63*(nel_y+1)-1
 
-            loadCase = np.loadtxt('Load_case_2.dat', skiprows=1)
-            time, force = loadCase[:, 0], loadCase[:, 1]
+            lcase = np.loadtxt('Load_case_2.dat', skiprows=1)
+            time, force = lcase[:, 0], lcase[:, 1]
             amplitude = [np.array([time, force])]
 
             model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
 
-        elif loadCase == '3':
+        elif lcase == 2:
             nlabel = 139*(nel_y+1)-1
 
-            loadCase = np.loadtxt('Load_case_3.dat', skiprows=1)
-            time, force = loadCase[:, 0], loadCase[:, 1]
+            lcase = np.loadtxt('Load_case_3.dat', skiprows=1)
+            time, force = lcase[:, 0], lcase[:, 1]
             amplitude = [np.array([time, force])]
 
             model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
@@ -395,29 +416,29 @@ def main(job):
         labels = ''.join([
             'Node-{}-Ux'.format(label).ljust(24, ' ')+
             'Node-{}-Uy'.format(label).ljust(24, ' ') for label in olabels])
-        fname = jname+'_displacements.dat'
+        fname = jobName+'_displacements.dat'
         np.savetxt(fname, displacements, fmt='% .16e', header=labels)
 
         labels = ''.join([
             'Node-{}-Ax'.format(label).ljust(24, ' ')+
             'Node-{}-Ay'.format(label).ljust(24, ' ') for label in olabels])
-        fname = jname+'_accelerations.dat'
+        fname = jobName+'_accelerations.dat'
         np.savetxt(fname, accelerations, fmt='% .16e', header=labels)
 
         labels = ''.join([
             'Node-{}-Exx'.format(label).ljust(24, ' ')+
             'Node-{}-Eyy'.format(label).ljust(24, ' ')+
             'Node-{}-Exy'.format(label).ljust(24, ' ') for label in olabels])
-        fname = jname+'_strains.dat'
+        fname = jobName+'_strains.dat'
         np.savetxt(fname, strains, fmt='% .16e', header=labels)
 
 
-    elif janalysis == 'Static':
+    elif jobAnalysis == 'Static':
 
         nlabel = 63*(nel_y+1)-1
 
-        # loadCase = np.loadtxt('Load_case_2.dat', skiprows=1)
-        # time, force = loadCase[0, 0], loadCase[1, 1]
+        # lcase = np.loadtxt('Load_case_2.dat', skiprows=1)
+        # time, force = lcase[0, 0], lcase[1, 1]
         time = 30 # np.linspace(0, 30, 10000)
         force = 1e3
         amplitude = [np.array([time, force])]
@@ -463,8 +484,8 @@ def main(job):
             'Node-{}-Exy'.format(label).ljust(24, ' ') for label in olabels])
 
         sys.stdout.write('Writting output files ...\n')
-        np.savetxt(jname+'_displacements.dat', displacements, header=labels)
-        np.savetxt(jname+'_strains.dat', strains, fmt='% .16e', header=labels)
+        np.savetxt(jobName+'_displacements.dat', displacements, header=labels)
+        np.savetxt(jobName+'_strains.dat', strains, fmt='% .16e', header=labels)
 
         # fmt='{:*^10}'.format('%f')
         # fmt='%.16f'
@@ -538,4 +559,5 @@ def main(job):
 
 
 if __name__ == '__main__':
-    main(None)
+    job = back2front.Job('Job-1')
+    main(job)
