@@ -61,7 +61,6 @@ class Main(tk.Frame):
 
     def createSettings(self):
         
-        # self.material = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
         self.settings.createModelConfiguration()
 
 
@@ -116,11 +115,11 @@ class Main(tk.Frame):
 
         # Job material, boundary conditions, corrosion and temperature
         # are already set once the corresponding widgets are closed.
-        
+
         # Set type of analysis
         analysis = self.analysis.analysisTypeVariables['Analysis'].get()
         self.job.setAnalysis(analysis)
-        
+
         print(self.job.analysis, type(self.job.analysis))
 
         # Set settings for modal analysis
@@ -136,14 +135,76 @@ class Main(tk.Frame):
         beta = float(self.analysis.historySettings[4].get())
         period = float(self.analysis.historySettings[6].get())
         increment = float(self.analysis.historySettings[8].get())
-        lcase = int(self.analysis.historySettings[10].get()[-1])
+        lcase = int(self.analysis.historySettings[10].get()[-1])-1
         self.job.setTimeHistorySettings(alpha, beta, period, increment, lcase)
 
         print(self.job.timeHistorySettings)
 
 
     def retrieveJob(self, job):
-        pass
+
+        self.job = job
+        
+        # Retrieve job name
+        self.analysis.jobWidgets['job'].delete(0, tk.END)
+        self.analysis.jobWidgets['job'].insert(tk.END, job.getName())
+
+        # Retrieve job model
+        self.settings.modelConfiguration[0].select_set(job.getModel())
+
+        # Retrieve model figure
+        self.model.updateModelPlot((job.getModel(), ))
+        self.settings.modelConfiguration[0].select_clear(0, tk.END)
+        self.settings.modelConfiguration[0].select_set(job.getModel())
+
+        # Retrieve job thickness
+        self.settings.modelConfiguration[2].delete(0, tk.END)
+        self.settings.modelConfiguration[2].insert(tk.END, job.getThickness())
+
+        # Retrieve job damage
+        self.settings.modelConfiguration[4].delete(0, tk.END)
+        self.settings.modelConfiguration[4].insert(tk.END, job.getDamage())
+
+        # Job material, boundary conditions, corrosion and temperature values
+        # are retrieved through the current job, as soon as the corresponding
+        # widgets are created.
+
+        # Retrieve type of analysis
+        index = 0 if job.getAnalysis() == 'Modal' else 1
+        self.analysis.analysisType[index].select()
+
+        if index == 0:
+            self.analysis.switchModalSettings('normal')
+            self.analysis.switchTimeHistorySettings('disable')
+        else:
+            self.analysis.switchModalSettings('disable')
+            self.analysis.switchTimeHistorySettings('normal')
+
+        # Retrieve settings for modal analysis
+        modalSettings = job.getModalSettings()
+        self.analysis.modalSettings[1].delete(0, tk.END)
+        self.analysis.modalSettings[1].insert(tk.END, modalSettings['Modes'])
+
+        index = 0 if modalSettings['Normalization'] == 'Mass' else 1
+        self.analysis.modalSettings[3+index].select()
+
+        # Retrieve settings for dynamic analysis
+        historySettings = job.getTimeHistorySettings()
+        self.analysis.historySettings[2].delete(0, tk.END)
+        self.analysis.historySettings[2].insert(tk.END, historySettings['Alpha'])
+
+        self.analysis.historySettings[4].delete(0, tk.END)
+        self.analysis.historySettings[4].insert(tk.END, historySettings['Beta'])
+
+        self.analysis.historySettings[6].delete(0, tk.END)
+        self.analysis.historySettings[6].insert(tk.END, historySettings['Period'])
+
+        self.analysis.historySettings[8].delete(0, tk.END)
+        self.analysis.historySettings[8].insert(tk.END, historySettings['Increment'])
+
+        self.analysis.historySettings[-1].current(historySettings['Load case'])
+
+
 
 
     def callbackHelp(self):
@@ -192,7 +253,7 @@ class Job:
         self.modalSettings = {'Modes': 5, 'Normalization': 'Mass'} 
 
         self.timeHistorySettings = {'Alpha': 0.005, 'Beta': 0.005, 
-                'Period': 10, 'Increment': 0.1, 'Load case': 1}
+                'Period': 10, 'Increment': 0.1, 'Load case': 0}
 
 
     def setName(self, name):
@@ -264,7 +325,7 @@ class Job:
         self.analysis = analysis
 
     def getAnalysis(self):
-        return analysis
+        return self.analysis
 
 
     def setModalSettings(self, modes, normalization):
@@ -281,6 +342,9 @@ class Job:
         self.timeHistorySettings['Period'] = period
         self.timeHistorySettings['Increment'] = increment
         self.timeHistorySettings['Load case'] = lcase
+
+    def getTimeHistorySettings(self):
+        return self.timeHistorySettings
 
 
 
@@ -358,7 +422,10 @@ class Scenario:
 
     def callbackEdit(self):
 
-        print('Callback function to be written.')
+        selection = self.widgets['listbox'].curselection()
+        name = self.widgets['listbox'].get(selection)
+        self.main.retrieveJob(self.main.scenario.jobs[name])
+        
 
 
     def callbackDelete(self, items=None):
@@ -1522,7 +1589,6 @@ class Analysis:
 
         # 1. Check if all parameters are filled-in
         # 2. Check if parameters are correctly defined
-        # 3. Check if job name exists
 
         listbox = self.main.scenario.widgets['listbox']
         jobs = listbox.get(0, tk.END)
@@ -1560,7 +1626,6 @@ class Analysis:
 
         # self.main.job.setName(job)
         self.main.saveJob()
-
 
         # Save job to the list of jobs
 
