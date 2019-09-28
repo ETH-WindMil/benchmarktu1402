@@ -433,3 +433,5 @@ def convert(frontJob):
     backJob.setAnalysis(frontJob.getAnalysis())
     backJob.setModalSettings(*frontJob.getModalSettings().values())
     backJob.setTimeHistorySettings(*frontJob.getTimeHistorySettings().values())
+
+    return backJob
