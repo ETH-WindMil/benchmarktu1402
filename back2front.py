@@ -328,8 +328,8 @@ def convert(frontJob):
             backMaterial[index] = float(frontMaterial['values'][index])
 
     else:
-        rows = np.max([item[0] for item in frontMaterial['values'].keys()])
-        cols = np.max([item[1] for item in frontMaterial['values'].keys()])
+        rows = np.max([item[0] for item in frontMaterial['values'].keys()])+1
+        cols = np.max([item[1] for item in frontMaterial['values'].keys()])+1
         backMaterial = np.zeros((rows, cols))
 
         for index, value in frontMaterial['values'].items():
@@ -352,8 +352,8 @@ def convert(frontJob):
                 backBoundaries[index] = float(frontBoundaries['values1'][index])
 
         else:   # this case does not work
-            rows = np.max([item[0] for item in frontBoundaries['values1'].keys()])
-            cols = np.max([item[1] for item in frontBoundaries['values1'].keys()])
+            rows = np.max([item[0] for item in frontBoundaries['values1'].keys()])+1
+            cols = np.max([item[1] for item in frontBoundaries['values1'].keys()])+1
             backBoundaries = np.zeros((rows, cols))
 
             for index, value in frontBoundaries['values1'].items():
@@ -371,12 +371,12 @@ def convert(frontJob):
                     value = float(frontBoundaries[key][index])
                     backBoundaries[j][index] = value
 
-        else: # This case does not work
+        else:
             backBoundaries = []
 
             for j, key in zip(range(3), ['values1', 'values2', 'values3']):
-                rows = np.max([item[0] for item in frontBoundaries[key].keys()])
-                cols = np.max([item[1] for item in frontBoundaries[key].keys()])
+                rows = np.max([item[0] for item in frontBoundaries[key].keys()])+1
+                cols = np.max([item[1] for item in frontBoundaries[key].keys()])+1
                 backBoundaries.append(np.zeros((rows, cols)))
 
                 for index, value in frontBoundaries[key].items():
@@ -398,8 +398,8 @@ def convert(frontJob):
         backCorrosion[0, 1] = float(frontCorrosion['values'][(0, 0)])
 
     else:
-        rows = np.max([item[0] for item in frontCorrosion['values'].keys()])
-        cols = np.max([item[1] for item in frontCorrosion['values'].keys()])
+        rows = np.max([item[0] for item in frontCorrosion['values'].keys()])+1
+        cols = np.max([item[1] for item in frontCorrosion['values'].keys()])+1
         backCorrosion = np.zeros((rows, cols))
 
         for index, value in frontCorrosion.items():
@@ -418,8 +418,8 @@ def convert(frontJob):
         backTemperature[0, 1] = float(frontTemperature['values'][(0, 0)])
 
     else:
-        rows = np.max([item[0] for item in frontTemperature['values'].keys()])
-        cols = np.max([item[1] for item in frontTemperature['values'].keys()])
+        rows = np.max([item[0] for item in frontTemperature['values'].keys()])+1
+        cols = np.max([item[1] for item in frontTemperature['values'].keys()])+1
 
         for index, value in frontTemperature.items():
             backTemperature[index] = float(value)
