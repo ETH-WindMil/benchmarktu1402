@@ -559,5 +559,5 @@ def main(job):
 
 
 if __name__ == '__main__':
-    job = back2front.Job('Job-1')
+    job = back2front.BackendJob('Job-1')
     main(job)
