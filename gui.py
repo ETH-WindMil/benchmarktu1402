@@ -236,10 +236,10 @@ class Job:
         self.thickness = 0.1
         self.damage = 10
 
-        values = {(0, 0): '210000000000', (0, 1):'0.3', (0, 2): '25'}
+        values = {(0, 0): '30000000000', (0, 1):'0.3', (0, 2): '25'}
         self.material = {'values': values, 'temperature': False}
 
-        values = {(0, 0): '200000000000', (0, 1): '200000000000', (0, 2): '25'}
+        values = {(0, 0): '1000000000000000', (0, 1): '10000000000', (0, 2): '25'}
         self.boundaries = {'values1': values, 'values2':values, 
                 'values3': values, 'temperature': False, 'identical': False}
 
@@ -253,8 +253,8 @@ class Job:
 
         self.modalSettings = {'Modes': 5, 'Normalization': 'Mass'} 
 
-        self.timeHistorySettings = {'Alpha': 0.005, 'Beta': 0.005, 
-                'Period': 10, 'Increment': 0.1, 'Load case': 0}
+        self.timeHistorySettings = {'Alpha': 0.002, 'Beta': 0.0001, 
+                'Period': 50, 'Increment': 0.005, 'Load case': 0}
 
 
     def setName(self, name):
@@ -1539,7 +1539,7 @@ class Analysis:
 
 
         case = ttk.Combobox(frame, values=['Load case 1', 'Load case 2', 
-                'Load case 3'], state='readonly')
+                'Load case 3', 'Load case 4'], state='readonly')
         case.current(self.main.job.timeHistorySettings['Load case'])
         case.grid(row=6, column=0, columnspan=2, padx=10, pady=(0, 10), 
                 sticky=tk.W+tk.N+tk.E)
