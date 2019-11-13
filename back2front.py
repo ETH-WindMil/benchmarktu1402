@@ -15,10 +15,10 @@ class BackendJob:
         self.setDamage(0.1)
 
         # Set default values for material properties
-        self.setMaterial(np.array([[1.8e11, 0.3, 10]]))
+        self.setMaterial(np.array([[3e10, 0.3, 10]]))
 
         # Set default values for boundary conditions
-        self.setBoundaries(np.array([[1e15, 1e11, 20]]))
+        self.setBoundaries(np.array([[1e15, 1e10, 20]]))
 
         # Set default values for corrosion wastage
         self.setCorrosion(np.array([[0.0, 0.5]]))
