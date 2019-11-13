@@ -6,51 +6,16 @@ import quadrilaterals
 import analysis
 import model
 import material
-
 import back2front
 
 import numpy as np
 import itertools as it
-
 import matplotlib.pyplot as plt
 
 
 def main(job):
 
-    #  Read job object
-
-    # jobName = 'Job-1'
-    # jobModel = 0
-    # jobThickness = 0.1
-    # jobDamage = 0     # Percentage of stiffness reduction in the damaged area
-
-    # jobMaterial = np.array([
-    #         [1.8e11, 0.3, 10]]) # E, n, temperature
-
-    # jboundary1 = np.array([
-    #         [1e15, 1e11, 20]]) # kx, ky, temperature
-
-    # jboundary2 = np.array([
-    #         [1e15, 1e11, 20]]) # kx, ky, temperature
-
-    # jboundary3 = np.array([
-    #         [1e15, 1e11, 20]]) # kx, ky, temperature
-
-    # jobWastage = np.array([
-    #         [0.0, 0.5]]) # Wastage, x / length
-
-    # jobTemperature = np.array([
-    #         [10, 0.5]]) # temperature, x / length
-
-    # jobAnalysis = 'Time history'
-    # jobAnalysis = 'Modal'
-    # jsettings = {'Modes': 5, 'Normalization': 'Mass'}
-
-    # lcase = 0                # 0, 1, 2
-    # alpha, beta = 1e-5, 1e-5    # Rayleigh damping coefficients
-    # period = 20                 # Simulation period
-    # increment = 0.05             # Time increment
-
+    #  Read job definition
 
     jobName = job.getName()
     jobModel = job.getModel()
@@ -92,20 +57,20 @@ def main(job):
 
     #  Define Geometry
 
-    length = 20                 # Dimension in x-axis
-    density = 2000              # Material density
+    length = 25                     # Dimension in x-axis
+    density = 2000                  # Material density
 
-    height_start = 0.60         # Dimension in y-axis
+    height_start = 0.60             # Dimension in y-axis
     height_end = height_start
 
-    width_start = 0.1           # Dimension in z-axis
+    width_start = 0.1               # Dimension in z-axis
     width_end = width_start
 
-    nel_x = 200                 # Number of elements in x-axis
-    nel_y = 6                   # Number of elements in y-axis
+    nel_x = 200                     # Number of elements in x-axis
+    nel_y = 6                       # Number of elements in y-axis
 
-    el_size_x = length/nel_x    # Element size in x-direction
-    el_size_y = height_start/nel_y    # Element size in y-direction
+    el_size_x = length/nel_x        # Element size in x-direction
+    el_size_y = height_start/nel_y  # Element size in y-direction
 
     points_x = np.arange(0, length*(1+1/nel_x)-1e-10, length/nel_x)
     counter = it.count(0)
@@ -204,6 +169,7 @@ def main(job):
 
     #  Apply boundary conditions
 
+    dtol = 1e-5
     blabels = [] # Labels of boundary nodes
 
     for node in nodes:
@@ -211,49 +177,49 @@ def main(job):
 
         #  Left-hand side constraints
 
-        if x == 0 and y == -height_start/2:
+        if np.abs(x - 0) < dtol and np.abs(y + height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        elif x == el_size_x and y == -height_start/2:
+        elif np.abs(x-el_size_x) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        elif x == el_size_x*2 and y == -height_start/2:
+        elif np.abs(x-el_size_x*2) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        elif x == el_size_x*3 and y == -height_start/2:
+        elif np.abs(x-el_size_x*3) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
 
         #  Mid-point constraints
 
-        elif x == length/2-el_size_x*2 and y == -height_start/2:
+        elif np.abs(x-(length/2-el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif x == length/2-el_size_x and y == -height_start/2:
+        elif np.abs(x-(length/2-el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif x == length/2 and y == -height_start/2:
+        elif np.abs(x-length/2) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif x == length/2+el_size_x and y == -height_start/2:
+        elif np.abs(x-(length/2+el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif x == length/2+el_size_x*2 and y == -height_start/2:
+        elif np.abs(x-(length/2+el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
 
         #  Right-hand side constraints
 
-        elif x == length-el_size_x*3 and y == -height_start/2:
+        elif np.abs(x-(length-el_size_x*3)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
-        elif x == length-el_size_x*2 and y == -height_start/2:
+        elif np.abs(x-(length-el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
-        elif x == length-el_size_x and y == -height_start/2:
+        elif np.abs(x-(length-el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
-        elif x == length and y == -height_start/2:
+        elif np.abs(x-length ) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
 
@@ -350,6 +316,18 @@ def main(job):
             amplitude = [np.array([time, force])]
 
             model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
+
+        elif lcase == 3:
+            lcase = np.loadtxt('Load_case_4.dat', skiprows=1)
+            time, forces = lcase[:, 0], lcase[:, 1:]
+            nlabels = np.arange(nel_y+1, (nel_x+1)*(nel_y+1), nel_y+1)
+
+            for j, nlabel in enumerate(nlabels):
+
+                amplitude = [np.array([time, forces[:, j]])]
+                model.Load(model1).addForce(nodes[nlabel].label, 'y', amplitude)
+
+
 
         # Define dynamic analysis
 
@@ -487,32 +465,22 @@ def main(job):
         np.savetxt(jobName+'_displacements.dat', displacements, header=labels)
         np.savetxt(jobName+'_strains.dat', strains, fmt='% .16e', header=labels)
 
-        # fmt='{:*^10}'.format('%f')
-        # fmt='%.16f'
-        # fmt='%25.20f'
-        # fmt='{:<10}'.format('%e')
-        # fmt='{:>25}'.format('%.15e')
-
-    nlabel = np.arange(nel_y, (nel_x+1)*(nel_y+1) ,nel_y+1)
-
-
 
     #  Plot mode shapes
 
-    # plt.figure(4)
-
-    # for mode_no in range(1):
-    #     # for item, mode in zip(list(model1.ndof.keys()), modal.modes[:, mode_no]):
-    #     #     nodes[item[0]].dsp[item[1]] = mode
-
-    #     for item, mode in zip(list(model1.ndof.keys()), static.displacement):
+    # for mode_no in range(5):
+    #     for item, mode in zip(list(model1.ndof.keys()), modal.modes[:, mode_no]):
     #         nodes[item[0]].dsp[item[1]] = mode
 
+    #     # for item, mode in zip(list(model1.ndof.keys()), static.displacement):
+    #     #     nodes[item[0]].dsp[item[1]] = mode
+
+    #     plt.figure()
     #     n = str(mode_no+1)
         
     #     # plt.subplot('41'+n)
     #     # plt.title('Mode '+n+' - '+str(modal.frequencies[mode_no])[:5]+' Hz', fontsize=11)
-    #     plt.title('Mode '+n+' - '+'sjdfnsfdns Hz', fontsize=11)
+    #     plt.title('Mode '+n+' - '+'{:.3f} Hz'.format(frequencies[mode_no]), fontsize=11)
     #     plt.axis('equal')
 
     #     plt.xlim(0, length)
@@ -529,23 +497,22 @@ def main(job):
     #             clr = 'r'
     #             width = 0.5
 
-    #         elements[i].deformed(scale=0, color=clr, lnwidth=width)
+    #         elements[i].deformed(scale=1e2, color=clr, lnwidth=width)
 
     #         # elements[i].plotLabel()
 
-    #     for lab in olabels:
-    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     # for lab in olabels:
+    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
-    #     for lab in [63*7-1, 139*7-1]:
-    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     # for lab in [63*7-1, 139*7-1]:
+    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
-    #     for lab in nlabel:
-    #         plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
+    #     # for lab in nlabel:
+    #     #     plt.plot(nodes[lab].coords[0], nodes[lab].coords[1], 'o')
 
 
     # plt.tight_layout()
     # plt.show()
-
 
 
     # # Plot modal response
@@ -560,4 +527,36 @@ def main(job):
 
 if __name__ == '__main__':
     job = back2front.BackendJob('Job-1')
+
+    job.setModel(0)
+    job.setThickness(0.1)
+    job.setDamage(0.1)
+
+    # Set default values for material properties (E, n, T)
+    job.setMaterial(np.array([[3e10, 0.3, 10]]))
+
+    # Set default values for boundary conditions (Kx, Ky, T)
+    job.setBoundaries(np.array([[1e15, 1e10, 20]]))
+
+    # Set default values for corrosion wastage (W, x/L)
+    job.setCorrosion(np.array([[0.0, 0.5]]))
+
+    # Set default values for environmental temperature (T, x/L)
+    job.setTemperature(np.array([[10, 0.5]]))
+
+
+    # Modal analysis settings
+    job.setAnalysis('Modal')
+
+    # Set default values for modal analysis (Modes, normalization)
+    job.setModalSettings(10, 'Mass')
+
+
+    # # Time history settings
+    # job.setAnalysis('Time history')
+
+    # # Set default values for time history analysis (a, b, period, step, load)
+    # job.setTimeHistorySettings(0.002, 0.0001, 200, 0.005, 3)
+
+
     main(job)
