@@ -14,26 +14,26 @@ class BackendJob:
         self.setThickness(0.1)
         self.setDamage(0.1)
 
-        # Set default values for material properties
+        # Set default values for material properties (E, n, T)
         self.setMaterial(np.array([[3e10, 0.3, 10]]))
 
-        # Set default values for boundary conditions
+        # Set default values for boundary conditions (Kx, Ky, T)
         self.setBoundaries(np.array([[1e15, 1e10, 20]]))
 
-        # Set default values for corrosion wastage
+        # Set default values for corrosion wastage (W, x/L)
         self.setCorrosion(np.array([[0.0, 0.5]]))
 
-        # Set default values for environmental temperature
+        # Set default values for environmental temperature (T, x/L)
         self.setTemperature(np.array([[10, 0.5]]))
 
         # Set default type of analysis
         self.setAnalysis('Modal')
 
-        # Set default values for modal analysis
+        # Set default values for modal analysis (Modes, normalization)
         self.setModalSettings(5, 'Mass')
 
-        # Set default values for time history analysis
-        self.setTimeHistorySettings(0.005, 0.005, 10, 0.1, 0)
+        # Set default values for time history analysis (a, b, period, step, load)
+        self.setTimeHistorySettings(0.002, 0.0001, 50, 0.005, 0)
 
 
     def setName(self, name):
@@ -278,7 +278,7 @@ class BackendJob:
             The total simulation period.
         increment: float, positive
             The time increment.
-        lcase: {0, 1, 2}
+        lcase: {0, 1, 2, 3}
             The load case index.
         """
 
