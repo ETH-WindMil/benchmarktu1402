@@ -545,18 +545,18 @@ if __name__ == '__main__':
     job.setTemperature(np.array([[10, 0.5]]))
 
 
-    # Modal analysis settings
-    job.setAnalysis('Modal')
+    # # Modal analysis settings
+    # job.setAnalysis('Modal')
 
-    # Set default values for modal analysis (Modes, normalization)
-    job.setModalSettings(10, 'Mass')
+    # # Set default values for modal analysis (Modes, normalization)
+    # job.setModalSettings(10, 'Mass')
 
 
-    # # Time history settings
-    # job.setAnalysis('Time history')
+    # Time history settings
+    job.setAnalysis('Time history')
 
-    # # Set default values for time history analysis (a, b, period, step, load)
-    # job.setTimeHistorySettings(0.002, 0.0001, 200, 0.005, 3)
+    # Set default values for time history analysis (a, b, period, step, load)
+    job.setTimeHistorySettings(0.002, 0.0001, 200, 0.005, 3)
 
 
     main(job)
