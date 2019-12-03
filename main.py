@@ -17,11 +17,12 @@ import matplotlib.pyplot as plt
 def submit(job, pipe=sys.stdout.write):
 
     """
+    Submit job.
 
     Parameters
     ----------
-    job: ...
-        ...
+    job: front2back.BackendJob
+        The job to be submitted.
     pipe: function
         The function to pipe progress messages. When called by the user 
         interface, messages are by default piped to the message window.

@@ -13,9 +13,9 @@ relying on the Value of Information.
 ```
 python main.py
 ```
-- Run the benchmark frontend through the terminal by typing
+- Run the benchmark user interface (UI) through the terminal by typing
 ```
-python gui.py
+python benchmarkty1402.py
 ```
 
 ## Documentation
@@ -90,5 +90,5 @@ If you think you've found a bug, go ahead and create a new [GitHub issue](https:
 
 ## Notes
 
-- The code can be configured and executed through main.py script
+- The model parameters and output requests can be reconfigured and through main.py
 - All python dependencies are included in [Anaconda](https://www.anaconda.com/distribution/) installations
