@@ -454,18 +454,20 @@ class Scenario:
 
     def callbackRun(self):
 
-        # Run each job separately and print message
+        # Run jobs sequentially
 
         for name in self.main.scenario.jobs.keys():
 
             self.printMessage('Job {}\n'.format(name))
             self.printMessage('---------------------------------\n')
-            self.printMessage('  Submitted {}\n'.format(time.ctime()))
+            self.printMessage('  Submitted \n')
+            self.printMessage('  {}\n'.format(time.ctime()))
 
             backJob = front2back.convert(self.main.scenario.jobs[name])
-            core.submit(backJob)
+            core.submit(backJob, self.printMessage)
 
-            self.printMessage('  Completed {}\n'.format(time.ctime()))
+            self.printMessage('  Completed \n')
+            self.printMessage('  {}\n'.format(time.ctime()))
 
 
     def switchButtons(self):
@@ -490,9 +492,9 @@ class Scenario:
         frame.grid(row=self.row+1, column=self.column, padx=(15, 10), pady=(5, 5), 
                 rowspan=2, sticky=tk.N+tk.E+tk.S+tk.W)
 
-        self.font = tkFont.Font(family="helvetica", size=6)
+        # self.font = tkFont.Font(family="helvetica", size=6)
         text = tk.Text(frame, width=self.width-2, spacing3=2.2, height=17, 
-                exportselection=0, state='disabled', font=self.font)
+                exportselection=0, state='disabled')
         text.grid(row=0, column=self.column, padx=(10, 0), pady=10,
                 sticky=tk.N+tk.E+tk.S+tk.W)
 
@@ -513,6 +515,8 @@ class Scenario:
         self.widgets['message'].insert(tk.END, message)
         self.widgets['message'].configure(state='disabled')
         self.widgets['message'].see(tk.END)
+
+        self.widgets['message'].update_idletasks()
 
 
     def createButtons(self):

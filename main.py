@@ -8,12 +8,23 @@ import model
 import material
 import front2back
 
+import time as tm
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
 
 
-def submit(job):
+def submit(job, pipe=sys.stdout.write):
+
+    """
+
+    Parameters
+    ----------
+    job: ...
+        ...
+    pipe: ...
+        ...
+    """
 
     #  Read job definition
 
@@ -253,10 +264,15 @@ def submit(job):
 
         # Submit modal analysis
 
+        pipe('  \n')
+        pipe('  Started: analysis \n')
+
         modal = analysis.Modal(model1)
         modal.setNumberOfEigenvalues(modes)
         modal.setNormalizationMethod(normalization)
         modal.submit()
+
+        pipe('  Completed: analysis \n\n')
 
         # Extract mode shapes at output locations
 
@@ -265,9 +281,14 @@ def submit(job):
 
         #  Save results
 
-        sys.stdout.write('Writting output files ...\n')
+        pipe('  Started: writting output \n')
+
         np.savetxt(jobName+'_frequencies.dat', frequencies)
         np.savetxt(jobName+'_modes.dat', modes, header=labels)
+
+        pipe('  Completed: writting output \n\n')
+
+        # pipe('  Saved output files \n')
 
     elif jobAnalysis == 'Time history':
 
@@ -331,10 +352,15 @@ def submit(job):
 
         # Define dynamic analysis
 
+        pipe('  \n')
+        pipe('  Started: analysis \n')
+
         dynamics = analysis.Dynamics(model1)
         dynamics.setTimePeriod(period)
         dynamics.setIncrementSize(period)
         dynamics.submit()
+
+        pipe('  Completed: analysis \n\n')
 
         time = np.arange(0, period+increment, increment)
         nmodes = dynamics.displacement.shape[0]
@@ -389,6 +415,8 @@ def submit(job):
 
         # Save results (displacements, accelerations and strains)
 
+        pipe('  Started: writting output \n')
+
         sys.stdout.write('Writting output files ...\n')
 
         labels = ''.join([
@@ -410,6 +438,7 @@ def submit(job):
         fname = jobName+'_strains.dat'
         np.savetxt(fname, strains, fmt='% .16e', header=labels)
 
+        pipe('  Completed: writting output \n\n')
 
     elif jobAnalysis == 'Static':
 
