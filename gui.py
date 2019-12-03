@@ -6,6 +6,7 @@ import webbrowser
 import numpy as np
 import itertools as it
 import tkinter as tk
+import tkinter.font as tkFont
 import matplotlib.pyplot as plt
 
 from tkinter import ttk
@@ -489,8 +490,9 @@ class Scenario:
         frame.grid(row=self.row+1, column=self.column, padx=(15, 10), pady=(5, 5), 
                 rowspan=2, sticky=tk.N+tk.E+tk.S+tk.W)
 
+        self.font = tkFont.Font(family="helvetica", size=6)
         text = tk.Text(frame, width=self.width-2, spacing3=2.2, height=17, 
-                exportselection=0, state='disabled')
+                exportselection=0, state='disabled', font=self.font)
         text.grid(row=0, column=self.column, padx=(10, 0), pady=10,
                 sticky=tk.N+tk.E+tk.S+tk.W)
 
