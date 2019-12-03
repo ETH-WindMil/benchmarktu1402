@@ -19,7 +19,7 @@ from matplotlib.figure import Figure
 
 from PIL import Image, ImageTk
 
-import main as core
+import main as mn
 import front2back
 
 
@@ -439,13 +439,13 @@ class Scenario:
         elif items is None:
             selection = self.widgets['listbox'].curselection()
             job = self.widgets['listbox'].get(selection)
-            self.printMessage('Job "{}" deleted.\n'.format(job))
+            self.printMessage(' Job "{}" deleted.\n'.format(job))
             self.widgets['listbox'].delete(selection)
         # elif selection == () and items != None:
         #     pass
         else:
             if self.widgets['listbox'].get(0, tk.END) != ():
-                self.printMessage('All jobs deleted.\n')
+                self.printMessage(' All jobs deleted.\n')
 
             self.widgets['listbox'].delete(0, tk.END)
 
@@ -458,16 +458,8 @@ class Scenario:
 
         for name in self.main.scenario.jobs.keys():
 
-            self.printMessage('Job {}\n'.format(name))
-            self.printMessage('---------------------------------\n')
-            self.printMessage('  Submitted \n')
-            self.printMessage('  {}\n'.format(time.ctime()))
-
             backJob = front2back.convert(self.main.scenario.jobs[name])
-            core.submit(backJob, self.printMessage)
-
-            self.printMessage('  Completed \n')
-            self.printMessage('  {}\n'.format(time.ctime()))
+            mn.submit(backJob, self.printMessage)
 
 
     def switchButtons(self):
@@ -1620,7 +1612,7 @@ class Analysis:
             return
 
         listbox.insert(len(jobs), job)
-        message = 'Job "{}" saved.\n'.format(job)
+        message = ' Job "{}" saved.\n'.format(job)
         self.main.scenario.printMessage(message)
 
         # Save job settings to the current job instance

@@ -22,9 +22,16 @@ def submit(job, pipe=sys.stdout.write):
     ----------
     job: ...
         ...
-    pipe: ...
-        ...
+    pipe: function
+        The function to pipe progress messages. When called by the user 
+        interface, messages are by default piped to the message window.
     """
+
+    pipe(' \n\n')
+    pipe(' Job {}\n'.format(job.getName()))
+    pipe(' -------------------------------\n')
+    pipe('   Submitted \n')
+    pipe('   {}\n'.format(tm.ctime()))
 
     #  Read job definition
 
@@ -264,15 +271,15 @@ def submit(job, pipe=sys.stdout.write):
 
         # Submit modal analysis
 
-        pipe('  \n')
-        pipe('  Started: analysis \n')
+        pipe('   \n')
+        pipe('   Started: analysis \n')
 
         modal = analysis.Modal(model1)
         modal.setNumberOfEigenvalues(modes)
         modal.setNormalizationMethod(normalization)
         modal.submit()
 
-        pipe('  Completed: analysis \n\n')
+        pipe('   Completed: analysis \n\n')
 
         # Extract mode shapes at output locations
 
@@ -281,12 +288,12 @@ def submit(job, pipe=sys.stdout.write):
 
         #  Save results
 
-        pipe('  Started: writting output \n')
+        pipe('   Started: writting output \n')
 
         np.savetxt(jobName+'_frequencies.dat', frequencies)
         np.savetxt(jobName+'_modes.dat', modes, header=labels)
 
-        pipe('  Completed: writting output \n\n')
+        pipe('   Completed: writting output \n\n')
 
         # pipe('  Saved output files \n')
 
@@ -353,14 +360,14 @@ def submit(job, pipe=sys.stdout.write):
         # Define dynamic analysis
 
         pipe('  \n')
-        pipe('  Started: analysis \n')
+        pipe('   Started: analysis \n')
 
         dynamics = analysis.Dynamics(model1)
         dynamics.setTimePeriod(period)
         dynamics.setIncrementSize(period)
         dynamics.submit()
 
-        pipe('  Completed: analysis \n\n')
+        pipe('   Completed: analysis \n\n')
 
         time = np.arange(0, period+increment, increment)
         nmodes = dynamics.displacement.shape[0]
@@ -415,9 +422,7 @@ def submit(job, pipe=sys.stdout.write):
 
         # Save results (displacements, accelerations and strains)
 
-        pipe('  Started: writting output \n')
-
-        sys.stdout.write('Writting output files ...\n')
+        pipe('   Started: writting output \n')
 
         labels = ''.join([
             'Node-{}-Ux'.format(label).ljust(24, ' ')+
@@ -438,7 +443,7 @@ def submit(job, pipe=sys.stdout.write):
         fname = jobName+'_strains.dat'
         np.savetxt(fname, strains, fmt='% .16e', header=labels)
 
-        pipe('  Completed: writting output \n\n')
+        pipe('   Completed: writting output \n\n')
 
     elif jobAnalysis == 'Static':
 
@@ -453,8 +458,13 @@ def submit(job, pipe=sys.stdout.write):
 
         # Define static analysis
 
+        pipe('  \n')
+        pipe('   Started: analysis \n')
+
         static = analysis.Static(model1)
         static.submit()
+
+        pipe('   Completed: analysis \n\n')
 
         # Extract displacements at output degrees of freedom
 
@@ -490,9 +500,16 @@ def submit(job, pipe=sys.stdout.write):
             'Node-{}-Eyy'.format(label).ljust(24, ' ')+
             'Node-{}-Exy'.format(label).ljust(24, ' ') for label in olabels])
 
-        sys.stdout.write('Writting output files ...\n')
+        pipe('   Started: writting output\n')
+
         np.savetxt(jobName+'_displacements.dat', displacements, header=labels)
         np.savetxt(jobName+'_strains.dat', strains, fmt='% .16e', header=labels)
+
+        pipe('   Completed: writting output\n')
+
+
+    pipe('   Completed \n')
+    pipe('   {}\n'.format(tm.ctime()))
 
 
     #  Plot mode shapes
