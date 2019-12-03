@@ -724,7 +724,40 @@ class Material:
 
         """ Callback function of "Ok" button. """
 
-        # Check input variables
+        # { Check if material properties table is consistently filled-in
+
+        def showError():
+            message = 'Material properties table may not contain zero values.'
+            messagebox.showerror('Error', message)
+
+        # Localize row and column indices of the last valued cell
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+                if value != '':
+                    max_valued_row, max_valued_col = i, j
+
+        # Check if the last column of the last valued row is populated
+        if max_valued_row == 0:
+            if max_valued_col < 1:
+                showError()
+                return
+        else:
+            if max_valued_col != 2:
+                showError()
+                return
+
+        # Check if all intermediate cells, until the last are populated
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+
+                if i <= max_valued_row:
+                    if value == '':
+                        showError()
+                        return
+
+        # }
 
         # Store non-zero table data into a dictionary
         values = {}
@@ -740,6 +773,7 @@ class Material:
         # Switch parent widgets back to normal state
         self.parent.switchWidgets('normal')
         self.root.destroy()
+
 
     def callbackCancel(self):
 
@@ -909,8 +943,50 @@ class BoundaryConditions:
 
         """ Callback function of "Ok" button. """
 
-        # Check input variables
+        # { Check if boundary conditions tables are consistently filled-in
 
+        def showError():
+                message = 'Boundary values table may not contain zero values.'
+                messagebox.showerror('Error', message)
+
+        def checkTableConsistency(widget):
+
+            consistency = True
+            # Localize row and column indices of the last valued cell
+            for i, columns in enumerate(widget):
+                for j, column in enumerate(columns):
+                    value = column.get()
+                    if value != '':
+                        max_valued_row, max_valued_col = i, j
+
+            # Check if the last column of the last valued row is populated
+            if max_valued_row == 0:
+                if max_valued_col < 1:
+                    consistency = False
+            else:
+                if max_valued_col != 2:
+                    consistency = False
+
+            # Check if all intermediate cells, until the last are populated
+            for i, columns in enumerate(widget):
+                for j, column in enumerate(columns):
+                    value = column.get()
+
+                    if i <= max_valued_row:
+                        if value == '':
+                            consistency = False
+
+            return consistency
+
+        lconsistency = checkTableConsistency(self.widgets['lcells'])
+        mconsistency = checkTableConsistency(self.widgets['mcells'])
+        rconsistency = checkTableConsistency(self.widgets['rcells'])
+
+        if not all([lconsistency, mconsistency, rconsistency]):
+            showError()
+            return
+
+        # }
 
         # Store non-zero table data of all three supports into a dictionary
         values1 = {}
@@ -1054,7 +1130,40 @@ class Corrosion:
 
         """ Callback function of "Ok" button. """
 
-        # Check input variables
+        # { Check if corrosion wastage table is consistently filled-in
+
+        def showError():
+            message = 'Corrosion wastage table may not contain zero values.'
+            messagebox.showerror('Error', message)
+
+        # Localize row and column indices of the last valued cell
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+                if value != '':
+                    max_valued_row, max_valued_col = i, j
+
+        # Check if the last column of the last valued row is populated
+        if max_valued_row == 0:
+            if max_valued_col < 1:
+                showError()
+                return
+        else:
+            if max_valued_col != 2:
+                showError()
+                return
+
+        # Check if all intermediate cells, until the last are populated
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+
+                if i <= max_valued_row:
+                    if value == '':
+                        showError()
+                        return
+
+        # }
 
         # Store non-zero table data into a dictionary
         values = {}
@@ -1184,7 +1293,40 @@ class Temperature:
 
         """ Callback function of "Ok" button. """
 
-        # Check input variables
+        # { Check if environmental temperature table is consistently filled-in
+
+        def showError():
+            message = 'Environmental temperature table may not contain zero values.'
+            messagebox.showerror('Error', message)
+
+        # Localize row and column indices of the last valued cell
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+                if value != '':
+                    max_valued_row, max_valued_col = i, j
+
+        # Check if the last column of the last valued row is populated
+        if max_valued_row == 0:
+            if max_valued_col < 1:
+                showError()
+                return
+        else:
+            if max_valued_col != 2:
+                showError()
+                return
+
+        # Check if all intermediate cells, until the last are populated
+        for i, columns in enumerate(self.widgets['cells']):
+            for j, column in enumerate(columns):
+                value = column.get()
+
+                if i <= max_valued_row:
+                    if value == '':
+                        showError()
+                        return
+
+        # }
 
         # Store non-zero table data into a dictionary
         values = {}
@@ -1635,14 +1777,10 @@ class Analysis:
         self.main.scenario.printMessage(message)
 
         # Save job settings to the current job instance
-
-        # self.main.job.setName(job)
         self.main.saveJob()
 
         # Save job to the list of jobs
-
         self.main.scenario.jobs[job] = copy.deepcopy(self.main.job)
-
 
         self.main.scenario.widgets['listbox'].see(tk.END)
         self.main.scenario.switchButtons()
