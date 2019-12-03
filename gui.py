@@ -1,6 +1,7 @@
 import os
 import sys
 import copy
+import time
 import webbrowser
 import numpy as np
 import itertools as it
@@ -452,20 +453,18 @@ class Scenario:
 
     def callbackRun(self):
 
-        print('Submit callback function to be written.')
-
-        sys.stdout.write('Submit callback function to be written by sys')
-
-        # j2 = front2back.convert(self.main.job)
-
         # Run each job separately and print message
 
         for name in self.main.scenario.jobs.keys():
 
-            self.printMessage('Running job "{}"'.format(name))
+            self.printMessage('Job {}\n'.format(name))
+            self.printMessage('---------------------------------\n')
+            self.printMessage('  Submitted {}\n'.format(time.ctime()))
 
             backJob = front2back.convert(self.main.scenario.jobs[name])
             core.submit(backJob)
+
+            self.printMessage('  Completed {}\n'.format(time.ctime()))
 
 
     def switchButtons(self):
