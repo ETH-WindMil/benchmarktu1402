@@ -90,6 +90,5 @@ If you think you've found a bug, go ahead and create a new [GitHub issue](https:
 
 ## Notes
 
-- The backend and frontend are currently not connected
 - The code can be configured and executed through main.py script
 - All python dependencies are included in [Anaconda](https://www.anaconda.com/distribution/) installations
