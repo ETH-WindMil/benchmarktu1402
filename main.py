@@ -13,7 +13,7 @@ import itertools as it
 import matplotlib.pyplot as plt
 
 
-def main(job):
+def submit(job):
 
     #  Read job definition
 
@@ -559,4 +559,4 @@ if __name__ == '__main__':
     job.setTimeHistorySettings(0.002, 0.0001, 200, 0.005, 3)
 
 
-    main(job)
+    submit(job)

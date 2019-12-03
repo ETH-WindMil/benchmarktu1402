@@ -17,7 +17,7 @@ from matplotlib.figure import Figure
 
 from PIL import Image, ImageTk
 
-import main
+import main as core
 import front2back
 
 
@@ -426,7 +426,6 @@ class Scenario:
         selection = self.widgets['listbox'].curselection()
         name = self.widgets['listbox'].get(selection)
         self.main.retrieveJob(self.main.scenario.jobs[name])
-        
 
 
     def callbackDelete(self, items=None):
@@ -455,22 +454,18 @@ class Scenario:
 
         print('Submit callback function to be written.')
 
-        j2 = front2back.convert(self.main.job)
+        sys.stdout.write('Submit callback function to be written by sys')
+
+        # j2 = front2back.convert(self.main.job)
 
         # Run each job separately and print message
 
-        for item in self.main.scenario.jobs.keys():
+        for name in self.main.scenario.jobs.keys():
 
-            pass
+            self.printMessage('Running job "{}"'.format(name))
 
-            # Call main.main(self.scenario.jobs[job])
-
-            # print(self.main.scenario.jobs[item].material)
-            # print(self.main.scenario.jobs[item].boundaries)
-            # print(self.main.scenario.jobs[item].corrosion)
-            # print(self.main.scenario.jobs[item].temperature)
-
-
+            backJob = front2back.convert(self.main.scenario.jobs[name])
+            core.submit(backJob)
 
 
     def switchButtons(self):
@@ -484,7 +479,6 @@ class Scenario:
         self.widgets['delete'].configure(state=state)
         self.widgets['deleteall'].configure(state=state)
         self.widgets['submit'].configure(state=state)
-
 
 
     def createMessageBox(self):
@@ -518,7 +512,6 @@ class Scenario:
         self.widgets['message'].insert(tk.END, message)
         self.widgets['message'].configure(state='disabled')
         self.widgets['message'].see(tk.END)
-
 
 
     def createButtons(self):
@@ -1662,9 +1655,8 @@ class Analysis:
 
 
 
-
-
 if __name__ == '__main__':
+
     main = Main()
     main.createScenario()
     main.createModel()

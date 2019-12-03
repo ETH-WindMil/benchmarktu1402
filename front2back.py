@@ -297,16 +297,16 @@ class BackendJob:
 def convert(frontJob):
 
     """
-    Convert backend job to frontend job.
+    Convert frontend job to backend job.
 
     Parameters
     ----------
-    backJob: gui.Job
+    frontJob: gui.Job
         The frontend job instance.
 
     Returns
     -------
-    frontJob: Job
+    backJob: Job
         The backend job instance.
     """
 
