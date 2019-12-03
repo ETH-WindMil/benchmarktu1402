@@ -6,7 +6,7 @@ import quadrilaterals
 import analysis
 import model
 import material
-import back2front
+import front2back
 
 import numpy as np
 import itertools as it
@@ -526,7 +526,7 @@ def main(job):
 
 
 if __name__ == '__main__':
-    job = back2front.BackendJob('Job-1')
+    job = front2back.BackendJob('Job-1')
 
     job.setModel(0)
     job.setThickness(0.1)
