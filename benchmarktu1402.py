@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 
 from tkinter import ttk
 from tkinter import messagebox
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg 
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+
 # Implement the default Matplotlib key bindings.
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
@@ -372,8 +373,8 @@ class Scenario:
 
         frame = tk.LabelFrame(self.main.root, text='List of jobs',
                 width=self.width, height=15)
-        frame.grid(row=self.row, column=self.column, padx=(15, 10), pady=(10, 5), 
-                sticky=tk.N+tk.E+tk.S+tk.W)
+        frame.grid(row=self.row, column=self.column, padx=(15, 10), 
+                pady=(10, 5), sticky=tk.N+tk.E+tk.S+tk.W)
 
         listBox = tk.Listbox(frame, width=self.width+10, height=7)
         listBox.activate(0) # Select the first entry
@@ -410,16 +411,16 @@ class Scenario:
                 sticky=tk.N+tk.S+tk.W)
         self.widgets['delete'] = delete
 
-        deleteall = tk.Button(frame, text='Delete All', width=11, state='disable',
-                command=lambda : self.callbackDelete('all'))
+        deleteall = tk.Button(frame, text='Delete All', width=11, 
+                state='disable', command=lambda : self.callbackDelete('all'))
         deleteall.grid(row=1, column=self.column+2, padx=(5, 10), pady=(5, 2),
                 sticky=tk.N+tk.S+tk.W, columnspan=2)
         self.widgets['deleteall'] = deleteall
 
         submit = tk.Button(frame, text='Run jobs', width=self.width,
                 state='disable', command=self.callbackRun)
-        submit.grid(row=2, column=self.column, padx=10, pady=(3, 10), columnspan=4,
-                sticky=tk.N+tk.E+tk.W)
+        submit.grid(row=2, column=self.column, padx=10, pady=(3, 10), 
+                columnspan=4, sticky=tk.N+tk.E+tk.W)
         self.widgets['submit'] = submit
 
 
@@ -481,8 +482,8 @@ class Scenario:
 
         frame = tk.LabelFrame(self.main.root, text='Messages',
                 width=self.width-20, height=22)
-        frame.grid(row=self.row+1, column=self.column, padx=(15, 10), pady=(5, 5), 
-                rowspan=2, sticky=tk.N+tk.E+tk.S+tk.W)
+        frame.grid(row=self.row+1, column=self.column, padx=(15, 10), 
+                pady=(5, 5), rowspan=2, sticky=tk.N+tk.E+tk.S+tk.W)
 
         # self.font = tkFont.Font(family="helvetica", size=6)
         text = tk.Text(frame, width=self.width-2, spacing3=2.2, height=17, 
@@ -526,13 +527,13 @@ class Scenario:
         hlp = tk.Button(self.main.root, text='Help', width=self.width, 
                 command=self.main.callbackHelp)
                 # command=self.main.model.updateModelPlot)
-        hlp.grid(row=self.row+4, column=self.column, padx=(15, 10), pady=(8, 2),# pady=(18, 2),# pady=(32, 5), 
-                sticky=tk.N+tk.E+tk.W)
+        hlp.grid(row=self.row+4, column=self.column, padx=(15, 10), 
+                pady=(8, 2), sticky=tk.N+tk.E+tk.W)
 
         close = tk.Button(self.main.root, text='Close', width=self.width,
                 command=self.main.callbackClose)
-        close.grid(row=self.row+5, column=self.column, padx=(15, 10), pady=(2, 20),# pady=(59, 5), 
-                sticky=tk.N+tk.E+tk.W)
+        close.grid(row=self.row+5, column=self.column, padx=(15, 10), 
+                pady=(2, 20), sticky=tk.N+tk.E+tk.W)
         
         self.widgets['hlp'] = hlp
         self.widgets['close'] = close
@@ -1105,7 +1106,8 @@ class Temperature:
     def createTable(self):
 
         labelFrame = tk.LabelFrame(self.root, text='Temperature field')
-        labelFrame.grid(row=0, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W)
+        labelFrame.grid(row=0, column=0, padx=10, pady=5, columnspan=2, 
+                sticky=tk.N+tk.W)
 
         space = tk.IntVar()
         check = tk.Checkbutton(labelFrame, text=' Spatial-dependency',
@@ -1262,19 +1264,22 @@ class Settings:
 
         thickness = tk.Entry(frame, width=12)
         thickness.insert(tk.END, self.main.job.thickness)
-        thickness.grid(row=2, column=0, padx=(10, 10), pady=(0, 10), sticky=tk.W+tk.N+tk.E)
+        thickness.grid(row=2, column=0, padx=(10, 10), pady=(0, 10), 
+                sticky=tk.W+tk.N+tk.E)
         self.modelConfiguration.append(thickness)
 
         # Label and entry for damage
 
         label = tk.Label(frame, text='Damage [%]', state='disable', anchor=tk.W)
-        label.grid(row=1, column=1, padx=(7, 0), pady=(5, 0), sticky=tk.W+tk.N+tk.E)
+        label.grid(row=1, column=1, padx=(7, 0), pady=(5, 0), 
+                sticky=tk.W+tk.N+tk.E)
         self.modelConfiguration.append(label)
 
         damage = tk.Entry(frame, width=12)
         damage.insert(tk.END, self.main.job.damage)
         damage.configure(state='disable')
-        damage.grid(row=2, column=1, padx=(10, 10), pady=(0, 10), sticky=tk.W+tk.N+tk.E)
+        damage.grid(row=2, column=1, padx=(10, 10), pady=(0, 10), 
+                sticky=tk.W+tk.N+tk.E)
         self.modelConfiguration.append(damage)
 
 
@@ -1283,22 +1288,26 @@ class Settings:
         #  self.material = Material(self.main)
         material = tk.Button(frame, text='Material properties',
                 command=lambda : Material(self.main))
-        material.grid(row=3, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W+tk.E)
+        material.grid(row=3, column=0, padx=10, pady=5, columnspan=2, 
+                sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(material)
 
         boundary = tk.Button(frame, text='Boundary conditions',
                 command=lambda : BoundaryConditions(self.main))
-        boundary.grid(row=4, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W+tk.E)
+        boundary.grid(row=4, column=0, padx=10, pady=5, columnspan=2, 
+                sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(boundary)
 
         corrosion  =tk.Button(frame, text='Corrosion wastage',
                 command=lambda : Corrosion(self.main))
-        corrosion.grid(row=5, column=0, padx=10, pady=5, columnspan=2, sticky=tk.N+tk.W+tk.E)
+        corrosion.grid(row=5, column=0, padx=10, pady=5, columnspan=2, 
+                sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(corrosion)
 
         temperature = tk.Button(frame, text='Environmental temperature',
                 command=lambda : Temperature(self.main), width=self.width-15)
-        temperature.grid(row=6, column=0, padx=10, pady=(5, 10), columnspan=2, sticky=tk.N+tk.W+tk.E)
+        temperature.grid(row=6, column=0, padx=10, pady=(5, 10), columnspan=2, 
+                sticky=tk.N+tk.W+tk.E)
         self.modelConfiguration.append(temperature)
 
 
@@ -1607,12 +1616,22 @@ class Analysis:
         # Check if job name already exists
 
         if job in jobs:
-            message = 'Job name already exists!'
-            messagebox.showwarning('Warning', message)
+
+            question = 'Job "{}" already exists. Do you want to overwrite it?'.format(job)
+            topbox = messagebox.askokcancel(title='Warning', message=question)
+
+            if topbox == True:
+                message = ' "{}" overwritten.\n'.format(job)
+                self.main.scenario.printMessage(message)
+
+                self.main.saveJob()
+                self.main.scenario.jobs[job] = copy.deepcopy(self.main.job)
+
             return
 
+
         listbox.insert(len(jobs), job)
-        message = ' Job "{}" saved.\n'.format(job)
+        message = ' "{}" saved.\n'.format(job)
         self.main.scenario.printMessage(message)
 
         # Save job settings to the current job instance
