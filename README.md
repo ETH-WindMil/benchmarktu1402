@@ -15,7 +15,7 @@ python main.py
 ```
 - Run the benchmark user interface (UI) through the terminal by typing
 ```
-python benchmarkty1402.py
+python benchmarktu1402.py
 ```
 
 ## Documentation
