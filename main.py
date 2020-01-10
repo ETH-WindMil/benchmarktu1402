@@ -195,8 +195,7 @@ def submit(job, pipe=sys.stdout.write):
     blabels = []                            # Labels of boundary nodes
 
     lposition = 0                           # Left-hand support
-    mposition = el_size_x*(nel_x//2+10)     # Intermediate support
-    mposition = L1
+    mposition = L1                          # Intermediate support
     rposition = length                      # Right-hand support
 
     for node in nodes:
