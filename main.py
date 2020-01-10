@@ -76,8 +76,8 @@ def submit(job, pipe=sys.stdout.write):
 
     #  Define Geometry
 
-    L1 = 12     # Length of the left-hand span
-    L2 = 13     # Length of the right-hand span
+    L1 = 12.5     # Length of the left-hand span
+    L2 = 12.5     # Length of the right-hand span
 
     length = L1+L2                  # Dimension in x-axis
     density = 2000                  # Material density
@@ -88,7 +88,7 @@ def submit(job, pipe=sys.stdout.write):
     width_start = 0.1               # Dimension in z-axis
     width_end = width_start
 
-    nel_x = 200                     # Number of elements in x-axis
+    nel_x = 200                    # Number of elements in x-axis
     nel_y = 6                       # Number of elements in y-axis
 
     el_size_x = length/nel_x        # Element size in x-direction
