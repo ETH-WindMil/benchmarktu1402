@@ -191,54 +191,58 @@ def submit(job, pipe=sys.stdout.write):
     dtol = 1e-5
     blabels = [] # Labels of boundary nodes
 
+    lposition = 0                           # Left-hand support
+    mposition = el_size_x*(nel_x//2+10)     # Intermediate support
+    rposition = length                      # Right-hand support
+
     for node in nodes:
         x, y = node.coords[0], node.coords[1]
 
         #  Left-hand side constraints
 
-        if np.abs(x - 0) < dtol and np.abs(y + height_start/2) < dtol:
+        if np.abs(x-lposition) < dtol and np.abs(y + height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        elif np.abs(x-el_size_x) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(lposition+el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        elif np.abs(x-el_size_x*2) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(lposition+el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
-        elif np.abs(x-el_size_x*3) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(lposition+el_size_x*3)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx1, ky1])
 
         #  Mid-point constraints
 
-        elif np.abs(x-(length/2-el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(mposition-el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif np.abs(x-(length/2-el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(mposition-el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif np.abs(x-length/2) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-mposition) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif np.abs(x-(length/2+el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(mposition+el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
-        elif np.abs(x-(length/2+el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(mposition+el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx2, ky2])
 
         #  Right-hand side constraints
 
-        elif np.abs(x-(length-el_size_x*3)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(rposition-el_size_x*3)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
-        elif np.abs(x-(length-el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(rposition-el_size_x*2)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
-        elif np.abs(x-(length-el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-(rposition-el_size_x)) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
-        elif np.abs(x-length ) < dtol and np.abs(y+height_start/2) < dtol:
+        elif np.abs(x-rposition) < dtol and np.abs(y+height_start/2) < dtol:
             blabels.append(node.label)
             model1.constraints.addSpring(node.label, ['x', 'y'], [kx3, ky3])
 
@@ -583,7 +587,11 @@ if __name__ == '__main__':
     job.setMaterial(np.array([[3e10, 0.3, 10]]))
 
     # Set default values for boundary conditions (Kx, Ky, T)
-    job.setBoundaries(np.array([[1e15, 1e10, 20]]))
+    job.setBoundaries(
+        np.array([[1e15, 1e10, 20]]),   # Left-hand support
+        np.array([[1e15, 1e10, 20]]),   # Intermediate support
+        np.array([[1e15, 1e10, 20]])    # Right-had support
+        )
 
     # Set default values for corrosion wastage (W, x/L)
     job.setCorrosion(np.array([[0.0, 0.5]]))
@@ -604,6 +612,5 @@ if __name__ == '__main__':
 
     # Set default values for time history analysis (a, b, period, step, load)
     job.setTimeHistorySettings(0.002, 0.0001, 200, 0.005, 3)
-
 
     submit(job)
