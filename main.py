@@ -76,7 +76,10 @@ def submit(job, pipe=sys.stdout.write):
 
     #  Define Geometry
 
-    length = 25                     # Dimension in x-axis
+    L1 = 12     # Length of the left-hand span
+    L2 = 13     # Length of the right-hand span
+
+    length = L1+L2                  # Dimension in x-axis
     density = 2000                  # Material density
 
     height_start = 0.60             # Dimension in y-axis
@@ -188,11 +191,12 @@ def submit(job, pipe=sys.stdout.write):
 
     #  Apply boundary conditions
 
-    dtol = 1e-5
-    blabels = [] # Labels of boundary nodes
+    dtol = 1e-5+el_size_x/2                 # Tolerance for node searching
+    blabels = []                            # Labels of boundary nodes
 
     lposition = 0                           # Left-hand support
     mposition = el_size_x*(nel_x//2+10)     # Intermediate support
+    mposition = L1
     rposition = length                      # Right-hand support
 
     for node in nodes:
