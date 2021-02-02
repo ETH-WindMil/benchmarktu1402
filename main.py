@@ -150,8 +150,8 @@ def submit(job, pipe=sys.stdout.write):
 
         #  Define material properties for each integration point
 
-        E = np.interp(xi, jobMaterial[:, 2], jobMaterial[:, 0])*(1-reduction)
-        n = np.interp(xi, jobMaterial[:, 2], jobMaterial[:, 1])
+        E = np.interp(temperature, jobMaterial[:, 2], jobMaterial[:, 0])*(1-reduction)
+        n = np.interp(temperature, jobMaterial[:, 2], jobMaterial[:, 1])
         materials = []
 
         for k in range(len(xi)):
