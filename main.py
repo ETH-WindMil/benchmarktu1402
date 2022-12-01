@@ -146,7 +146,7 @@ def submit(job, pipe=sys.stdout.write):
 
         #  Calculate stiffnes reduction
 
-        reduction = jobDamage if i in damagedElements else 0
+        reduction = jobDamage/100 if i in damagedElements else 0
 
         #  Define material properties for each integration point
 
@@ -161,7 +161,6 @@ def submit(job, pipe=sys.stdout.write):
 
         wastage = np.interp(xi, jobWastage[:, 1]*length, jobWastage[:, 0])
         thickness = jobThickness*(np.ones(len(xi))-wastage)
-        thickness = np.ones(9)*0.5
 
         #  Define elements and modify damaged ones
 
@@ -372,7 +371,7 @@ def submit(job, pipe=sys.stdout.write):
 
         dynamics = analysis.Dynamics(model1)
         dynamics.setTimePeriod(period)
-        dynamics.setIncrementSize(period)
+        dynamics.setIncrementSize(increment)
         dynamics.submit()
 
         pipe('   Completed: analysis \n\n')

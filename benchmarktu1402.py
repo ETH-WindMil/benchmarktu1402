@@ -96,26 +96,26 @@ class Main(tk.Frame):
         # Set job name
         self.job.setName(self.analysis.jobWidgets['job'].get())
 
-        print('Name:', self.job.name, type(self.job.name))
+        ### print('Name:', self.job.name, type(self.job.name))
 
         # Set job model
         selection = self.settings.modelConfiguration[0].curselection()[0]
         # self.job.setModel(self.settings.modelConfiguration[0].get(selection))
         self.job.setModel(selection)
 
-        print('Model:', self.job.model, type(self.job.model))
+        ### print('Model:', self.job.model, type(self.job.model))
 
         # Set job thickness
         thickness = float(self.settings.modelConfiguration[2].get())
         self.job.setThickness(thickness)
 
-        print('Thickness:', self.job.thickness, type(self.job.thickness))
+        ###print('Thickness:', self.job.thickness, type(self.job.thickness))
 
         # Set job damage
         damage = float(self.settings.modelConfiguration[4].get())
         self.job.setDamage(damage)
 
-        print('Damage:', self.job.damage, type(self.job.damage))
+        ### print('Damage:', self.job.damage, type(self.job.damage))
 
         # Job material, boundary conditions, corrosion and temperature
         # are already set once the corresponding widgets are closed.
@@ -124,7 +124,7 @@ class Main(tk.Frame):
         analysis = self.analysis.analysisTypeVariables['Analysis'].get()
         self.job.setAnalysis(analysis)
 
-        print(self.job.analysis, type(self.job.analysis))
+        ### print(self.job.analysis, type(self.job.analysis))
 
         # Set settings for modal analysis
         modes = int(self.analysis.modalSettingsVariables['Modes'].get())
@@ -132,7 +132,7 @@ class Main(tk.Frame):
         normalization = 'Mass' if index == '1' else 'Displacement'
         self.job.setModalSettings(modes, normalization)
 
-        print(self.job.modalSettings)
+        ### print(self.job.modalSettings)
 
         # Set settings for dynamic analysis
         alpha = float(self.analysis.historySettings[2].get())
@@ -142,7 +142,7 @@ class Main(tk.Frame):
         lcase = int(self.analysis.historySettings[10].get()[-1])-1
         self.job.setTimeHistorySettings(alpha, beta, period, increment, lcase)
 
-        print(self.job.timeHistorySettings)
+        ### print(self.job.timeHistorySettings)
 
 
     def retrieveJob(self, job):
@@ -442,6 +442,7 @@ class Scenario:
             job = self.widgets['listbox'].get(selection)
             self.printMessage(' Job "{}" deleted.\n'.format(job))
             self.widgets['listbox'].delete(selection)
+            del(self.jobs[job])
         # elif selection == () and items != None:
         #     pass
         else:
@@ -449,6 +450,7 @@ class Scenario:
                 self.printMessage(' All jobs deleted.\n')
 
             self.widgets['listbox'].delete(0, tk.END)
+            self.jobs = {}
 
         self.switchButtons()
 
@@ -1738,7 +1740,7 @@ class Analysis:
         jobs = listbox.get(0, tk.END)
         job = self.jobWidgets['job'].get()
 
-        print(job, type(job))
+        ### print(job, type(job))
 
         # Check if file name contains any invalid characters
 
