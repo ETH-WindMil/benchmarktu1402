@@ -1654,7 +1654,7 @@ class Analysis:
         self.historySettings.append(label)
 
         beta = tk.Entry(frame, width=12, textvariable=self.hsettingsvars['var2'])
-        beta.insert(tk.END, self.main.job.timeHistorySettings['Alpha'])
+        beta.insert(tk.END, self.main.job.timeHistorySettings['Beta'])
         beta.grid(row=2, column=1, padx=10, pady=(0, 2), sticky=tk.W+tk.N)
         self.historySettings.append(beta)
 
